@@ -1,0 +1,72 @@
+[
+  {
+    "name": "Afghanistan",
+    "country_code": "AF",
+    "idd_code": "+93",
+    "currency": "Afghan afghani",
+    "currency_code": "AFN",
+    "currency_symbol": "؋",
+    "region": "Asia",
+    "sub_region": "Southern Asia",
+    "timezone": "Afghanistan Time",
+    "timezone_code": "AFT",
+    "utc_offset": "+04:30",
+    "flag": "https://restcountries.com/data/afg.svg"
+  },
+  {
+    "name": "Albania",
+    "country_code": "AL",
+    "idd_code": "+355",
+    "currency": "Albanian lek",
+    "currency_code": "ALL",
+    "currency_symbol": "L",
+    "region": "Europe",
+    "sub_region": "Southern Europe",
+    "timezone": "Central European Time",
+    "timezone_code": "CET",
+    "utc_offset": "+01:00",
+    "flag": "https://restcountries.com/data/alb.svg"
+  },
+  {
+    "name": "Algeria",
+    "country_code": "DZ",
+    "idd_code": "+213",
+    "currency": "Algerian dinar",
+    "currency_code": "DZD",
+    "currency_symbol": "د.ج",
+    "region": "Africa",
+    "sub_region": "Northern Africa",
+    "timezone": "Central European Time",
+    "timezone_code": "CET",
+    "utc_offset": "+01:00",
+    "flag": "https://restcountries.com/data/dza.svg"
+  },
+  {
+    "name": "Andorra",
+    "country_code": "AD",
+    "idd_code": "+376",
+    "currency": "Euro",
+    "currency_code": "EUR",
+    "currency_symbol": "€",
+    "region": "Europe",
+    "sub_region": "Southern Europe",
+    "timezone": "Central European Time",
+    "timezone_code": "CET",
+    "utc_offset": "+01:00",
+    "flag": "https://restcountries.com/data/and.svg"
+  },
+  {
+    "name": "Angola",
+    "country_code": "AO",
+    "idd_code": "+244",
+    "currency": "Angolan kwanza",
+    "currency_code": "AOA",
+    "currency_symbol": "Kz",
+    "region": "Africa",
+    "sub_region": "Middle Africa",
+    "timezone": "West Africa Time",
+    "timezone_code": "WAT",
+    "utc_offset": "+01:00",
+    "flag": "https://restcountries.com/data/ago.svg"
+  }
+]

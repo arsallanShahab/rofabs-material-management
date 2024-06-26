@@ -1,0 +1,32 @@
+[
+  {
+    "label": "Africa/Abidjan (GMT+00:00)",
+    "utc": "+00:00",
+    "tzCode": "Africa/Abidjan"
+  },
+  {
+    "label": "Africa/Accra (GMT+00:00)",
+    "utc": "+00:00",
+    "tzCode": "Africa/Accra"
+  },
+  {
+    "label": "Africa/Addis_Ababa (GMT+03:00)",
+    "utc": "+03:00",
+    "tzCode": "Africa/Addis_Ababa"
+  },
+  {
+    "label": "Africa/Algiers (GMT+01:00)",
+    "utc": "+01:00",
+    "tzCode": "Africa/Algiers"
+  },
+  {
+    "label": "Africa/Asmara (GMT+03:00)",
+    "utc": "+03:00",
+    "tzCode": "Africa/Asmara"
+  },
+  {
+    "label": "Africa/Asmera (GMT+03:00)",
+    "utc": "+03:00",
+    "tzCode": "Africa/Asmera"
+  }
+]

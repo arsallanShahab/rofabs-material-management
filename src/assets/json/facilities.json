@@ -1,0 +1,38 @@
+[
+  {
+    "attributes": {
+      "id": "864d91a6-3a40-4098-a880-84b841e11adb",
+      "title": "24-hour front desk",
+      "category": "general"
+    },
+    "id": "864d91a6-3a40-4098-a880-84b841e11adb",
+    "type": "facility"
+  },
+  {
+    "attributes": {
+      "id": "5647179f-f62d-4560-a36c-1a44b6c36927",
+      "title": "24-hour security",
+      "category": "safety_and_security"
+    },
+    "id": "5647179f-f62d-4560-a36c-1a44b6c36927",
+    "type": "facility"
+  },
+  {
+    "attributes": {
+      "id": "cfd17530-e04f-423a-9851-2981a225ab14",
+      "title": "Accessible parking",
+      "category": "food_and_drink"
+    },
+    "id": "cfd17530-e04f-423a-9851-2981a225ab14",
+    "type": "facility"
+  },
+  {
+    "attributes": {
+      "id": "69172f92-de58-4820-967d-043c4975cf60",
+      "title": "Access to health care professionals",
+      "category": "safety_and_security"
+    },
+    "id": "69172f92-de58-4820-967d-043c4975cf60",
+    "type": "facility"
+  }
+]
