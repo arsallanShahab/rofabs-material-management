@@ -9,14 +9,20 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
+import axios from "axios";
+import dayjs from "dayjs";
 import { Form, Formik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import * as Yup from "yup";
 import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import useGet from "../../../lib/hooks/get-api";
+
+const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const HouseKeepingManagement = () => {
   const [activeTab, setActiveTab] = useState(1);
@@ -26,11 +32,62 @@ const HouseKeepingManagement = () => {
   };
 
   const [initialValues, setInitialValues] = useState({
-    productName: "",
+    productId: "",
     quantity: "",
     utilizationDate: "",
     roomNo: "",
   });
+  const {
+    data: itemsData,
+    error: itemsError,
+    loading: itemsLoading,
+    invalidateCache: invalidateItemsCache,
+    refresh: refreshItemsData,
+    getData: getItemsData,
+  } = useGet({ showToast: false });
+
+  const {
+    data: utilizationData,
+    error: utilizationError,
+    loading: utilizationLoading,
+    invalidateCache: invalidateUtilizationCache,
+    refresh: refreshUtilizationData,
+    getData: getUtilizationData,
+  } = useGet({ showToast: false });
+
+  useEffect(() => {
+    getUtilizationData(
+      `${API_URL}/getHouseKeepingUtilizationEntries?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      "house-keeping-utilization"
+    );
+    getItemsData(`${API_URL}/getItems`, "items");
+  }, []);
+
+  const handleCreateUtilization = async (values, { setSubmitting }) => {
+    try {
+      const response = await axios.post(
+        `${API_URL}/createHouseKeepingUtilizationEntry`,
+        {
+          propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
+          productId: values.productId,
+          quantity: values.quantity,
+          utilizationDate: new Date(values.utilizationDate).toISOString(),
+          roomNumber: values.roomNo,
+        }
+      );
+      const { data } = response;
+      toast.success(data.message || "Utilization Created Successfully");
+      invalidateUtilizationCache();
+      refreshUtilizationData();
+    } catch (error) {
+      console.log("Utilization Creation Failed");
+      toast.error(
+        error?.response?.data?.error || "Utilization Creation Failed"
+      );
+    } finally {
+      setSubmitting(false);
+    }
+  };
   return (
     <FlexContainer variant="column-start" gap="xl">
       <ActionArea
@@ -69,12 +126,17 @@ const HouseKeepingManagement = () => {
               <TableColumn>Room No</TableColumn>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell>Product 1</TableCell>
-                <TableCell>1</TableCell>
-                <TableCell>2021-09-01</TableCell>
-                <TableCell>101</TableCell>
-              </TableRow>
+              {!utilizationLoading &&
+                utilizationData?.map((utilization) => (
+                  <TableRow key={utilization?.uniqueId}>
+                    <TableCell>{utilization?.productName}</TableCell>
+                    <TableCell>{utilization?.quantity}</TableCell>
+                    <TableCell>
+                      {dayjs(utilization?.utilizationDate).format("DD-MM-YYYY")}
+                    </TableCell>
+                    <TableCell>{utilization?.roomNumber}</TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </FlexContainer>
@@ -84,16 +146,14 @@ const HouseKeepingManagement = () => {
         <Formik
           initialValues={initialValues}
           validationSchema={Yup.object().shape({
-            productName: Yup.string().required("Product Name is required"),
+            productId: Yup.string().required("Product ID is required"),
             quantity: Yup.number().required("Quantity is required"),
             utilizationDate: Yup.date().required(
               "Utilization Date is required"
             ),
             roomNo: Yup.number().required("Room No is required"),
           })}
-          onSubmit={(values, { setSubmitting }) => {
-            console.log(values);
-          }}
+          onSubmit={handleCreateUtilization}
         >
           {({
             values,
@@ -108,37 +168,27 @@ const HouseKeepingManagement = () => {
               <FlexContainer variant="column-start">
                 <GridContainer gap="xl">
                   <Select
-                    name="productName"
+                    name="productId"
                     label="Product Name"
                     labelPlacement="outside"
                     placeholder="Select a product"
                     radius="sm"
-                    items={[
-                      { value: "Product 1", label: "Product 1" },
-                      { value: "Product 2", label: "Product 2" },
-                      { value: "Product 3", label: "Product 3" },
-                    ]}
+                    items={itemsData || []}
                     classNames={{
                       label: "font-medium text-zinc-100",
                       inputWrapper: "border shadow-none",
                     }}
                     onChange={(e) => {
-                      setFieldValue("productName", e.target.value);
+                      setFieldValue("productId", e.target.value);
                     }}
-                    value={values.productName}
-                    isInvalid={errors.productName && touched.productName}
-                    color={
-                      errors.productName && touched.productName && "danger"
-                    }
-                    errorMessage={
-                      errors.productName &&
-                      touched.productName &&
-                      errors.productName
-                    }
+                    value={values.productId}
+                    isInvalid={errors.productId && touched.productId}
+                    color={errors.productId && touched.productId && "danger"}
+                    errorMessage={errors.productId}
                   >
                     {(vendor) => (
-                      <SelectItem key={vendor.value} value={vendor.value}>
-                        {vendor.label}
+                      <SelectItem key={vendor?.uniqueId}>
+                        {vendor?.productName}
                       </SelectItem>
                     )}
                   </Select>

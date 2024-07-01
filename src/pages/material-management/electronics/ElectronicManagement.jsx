@@ -10,14 +10,19 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
+import axios from "axios";
 import { Form, Formik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import * as Yup from "yup";
 import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import useGet from "../../../lib/hooks/get-api";
+
+const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const ElectronicManagement = () => {
   const [activeTab, setActiveTab] = useState(1);
@@ -25,6 +30,48 @@ const ElectronicManagement = () => {
   const handleTabClick = (tab) => {
     setActiveTab(tab);
   };
+
+  const {
+    data: itemsData,
+    error: itemsError,
+    loading: itemsLoading,
+    invalidateCache: invalidateItemsCache,
+    refresh: refreshItemsData,
+    getData: getItemsData,
+  } = useGet({ showToast: false });
+
+  useEffect(() => {
+    if (activeTab === 2) {
+      getItemsData(`${API_URL}/getItems`, "items");
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
+  const handleCreateUtilization = async (values, { setSubmitting }) => {
+    const utilization = {
+      propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
+      productId: values.productId,
+      roomNumber: values.roomNo,
+      quantity: values.quantity,
+      dateOfInstallation: values.dateOfInstallation,
+      miscellaneous: values.miscellaneous,
+      damaged: values.isDamaged,
+      damageDescription: values.damageDescription,
+      damageAmount: values.damageAmount,
+    };
+    try {
+      const response = await axios.post(
+        `${API_URL}/createElectronicUtilizationEntry`,
+        utilization
+      );
+      toast.success("Utilization created successfully");
+    } catch (error) {
+      toast.error(error?.response?.data?.error || "An error occurred");
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
   return (
     <FlexContainer variant="column-start" gap="xl">
       <ActionArea
@@ -85,7 +132,7 @@ const ElectronicManagement = () => {
         <Formik
           initialValues={{
             roomNo: "",
-            productName: "",
+            productId: "",
             quantity: "",
             dateOfInstallation: "",
             miscellaneous: "",
@@ -95,16 +142,14 @@ const ElectronicManagement = () => {
           }}
           validationSchema={Yup.object().shape({
             roomNo: Yup.string().required("Room number is required"),
-            productName: Yup.string().required("Product name is required"),
+            productId: Yup.string().required("Product id is required"),
             quantity: Yup.string().required("Quantity is required"),
             dateOfInstallation: Yup.string().required(
               "Date of installation is required"
             ),
             miscellaneous: Yup.string().required("Miscellaneous is required"),
           })}
-          onSubmit={(values) => {
-            console.log(values);
-          }}
+          onSubmit={handleCreateUtilization}
         >
           {({
             values,
@@ -120,37 +165,27 @@ const ElectronicManagement = () => {
               <FlexContainer variant="column-start">
                 <GridContainer gap="xl">
                   <Select
-                    name="productName"
+                    name="productId"
                     label="Product Name"
                     labelPlacement="outside"
                     placeholder="Select a product"
                     radius="sm"
-                    items={[
-                      { label: "Product 1", value: "product1" },
-                      { label: "Product 2", value: "product2" },
-                      { label: "Product 3", value: "product3" },
-                    ]}
+                    items={itemsData || []}
                     classNames={{
                       label: "font-medium text-zinc-100",
                       inputWrapper: "border shadow-none",
                     }}
                     onChange={(e) => {
-                      setFieldValue("productName", e.target.value);
+                      setFieldValue("productId", e.target.value);
                     }}
-                    value={values.productName}
-                    isInvalid={errors.productName && touched.productName}
-                    color={
-                      errors.productName && touched.productName && "danger"
-                    }
-                    errorMessage={
-                      errors.productName &&
-                      touched.productName &&
-                      errors.productName
-                    }
+                    value={values.productId}
+                    isInvalid={errors.productId && touched.productId}
+                    color={errors.productId && touched.productId && "danger"}
+                    errorMessage={errors.productId}
                   >
-                    {(vendor) => (
-                      <SelectItem key={vendor.value} value={vendor.value}>
-                        {vendor.label}
+                    {(item) => (
+                      <SelectItem key={item?.uniqueId}>
+                        {item.productName}
                       </SelectItem>
                     )}
                   </Select>

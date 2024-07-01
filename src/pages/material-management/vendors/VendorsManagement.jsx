@@ -8,12 +8,16 @@ import {
   getKeyValue,
 } from "@nextui-org/react";
 import { Pencil, Trash } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import Loader from "../../../components/Loader";
 import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import useGet from "../../../lib/hooks/get-api";
+
+const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const VendorRows = [
   {
@@ -287,6 +291,53 @@ const VendorsManagement = () => {
   const handleTabClick = (index) => {
     setActiveTab(index);
   };
+
+  const {
+    data: allVendorsData,
+    error: allVendorsError,
+    loading: allVendorsLoading,
+    invalidateCache: invalidateAllVendorsCache,
+    refresh: refreshAllVendorsData,
+    getData: getAllVendorsData,
+  } = useGet({ showToast: false });
+
+  const {
+    data: priceListData,
+    error: priceListError,
+    loading: priceListLoading,
+    invalidateCache: invalidatePriceListCache,
+    refresh: refreshPriceListData,
+    getData: getPriceListData,
+  } = useGet({ showToast: false });
+
+  const {
+    data: itemsData,
+    error: itemsError,
+    loading: itemsLoading,
+    invalidateCache: invalidateItemsCache,
+    refresh: refreshItemsData,
+    getData: getItemsData,
+  } = useGet({ showToast: false });
+
+  const {
+    data: AllCategoriesData,
+    error: AllCategoriesError,
+    loading: AllCategoriesLoading,
+    invalidateCache: invalidateAllCategoriesCache,
+    refresh: refreshAllCategories,
+    getData: getAllCategoriesData,
+  } = useGet({ showToast: false });
+
+  useEffect(() => {
+    getAllVendorsData(`${API_URL}/getVendors`, "allVendors");
+    getItemsData(`${API_URL}/getItems`, "items");
+    getAllCategoriesData(
+      `${API_URL}/getMinCategories?includeSubCategories=true`,
+      "categories"
+    );
+    getPriceListData(`${API_URL}/getPriceLists`, "priceList");
+  }, []);
+
   return (
     <FlexContainer variant="column-start" gap="xl">
       <ActionArea
@@ -314,14 +365,27 @@ const VendorsManagement = () => {
           onClick={() => handleTabClick(3)}
         />
       </FlexContainer>
-      {activeTab === 1 && <VendorList data={data} />}
-      {activeTab === 2 && <ItemList data={data} />}
-      {activeTab === 3 && <PriceList data={data} />}
+      {activeTab === 1 && (
+        <VendorList data={allVendorsData} isLoading={allVendorsLoading} />
+      )}
+      {activeTab === 2 && (
+        <ItemList
+          data={itemsData}
+          isLoading={itemsLoading}
+          categories={AllCategoriesData}
+        />
+      )}
+      {activeTab === 3 && (
+        <PriceList data={priceListData} isLoading={priceListLoading} />
+      )}
     </FlexContainer>
   );
 };
 
-const VendorList = ({ data }) => {
+const VendorList = ({ data, isLoading }) => {
+  if (isLoading) {
+    return <Loader />;
+  }
   return (
     <Table aria-label="Vendors List">
       <TableHeader>
@@ -335,22 +399,23 @@ const VendorList = ({ data }) => {
         <TableColumn>Terminate</TableColumn>
       </TableHeader>
       <TableBody>
-        {VendorRows.map((item, i) => {
-          return (
-            <TableRow key={item.email}>
-              <TableCell>{item.name}</TableCell>
-              <TableCell>{item.email}</TableCell>
-              <TableCell>{item.phone}</TableCell>
-              <TableCell>{item.address}</TableCell>
-              <TableCell>{item.vendor_category}</TableCell>
-              <TableCell>
-                {item.isActive ? (
-                  <span className="text-green-500">Active</span>
-                ) : (
-                  <span className="text-red-500">Inactive</span>
-                )}
-              </TableCell>
-              {/* <TableCell>
+        {!isLoading &&
+          data?.map((item, i) => {
+            return (
+              <TableRow key={item?.uniqueId}>
+                <TableCell>{item?.vendorName}</TableCell>
+                <TableCell>{item?.vendorEmail}</TableCell>
+                <TableCell>{item?.vendorPhoneNumber}</TableCell>
+                <TableCell>{item?.vendorAddress}</TableCell>
+                <TableCell>{item?.vendorStatus}</TableCell>
+                <TableCell>
+                  {item.vendorStatus == "true" ? (
+                    <span className="text-green-500">Active</span>
+                  ) : (
+                    <span className="text-red-500">Inactive</span>
+                  )}
+                </TableCell>
+                {/* <TableCell>
                   <NextButton
                     isIcon
                     onClick={() => navigate("edit", { state: item })}
@@ -358,20 +423,23 @@ const VendorList = ({ data }) => {
                     <Pencil className="w-4 h-4" />
                   </NextButton>
                 </TableCell> */}
-              <TableCell>
-                <NextButton isIcon colorScheme="error">
-                  <Trash className="w-4 h-4" />
-                </NextButton>
-              </TableCell>
-            </TableRow>
-          );
-        })}
+                <TableCell>
+                  <NextButton isIcon colorScheme="error">
+                    <Trash className="w-4 h-4" />
+                  </NextButton>
+                </TableCell>
+              </TableRow>
+            );
+          })}
       </TableBody>
     </Table>
   );
 };
 
-const ItemList = ({ data }) => {
+const ItemList = ({ data, isLoading, categories }) => {
+  if (isLoading) {
+    return <Loader />;
+  }
   return (
     <Table aria-label="Vendors List">
       <TableHeader>
@@ -385,51 +453,62 @@ const ItemList = ({ data }) => {
         {/* <TableColumn>Delete</TableColumn> */}
       </TableHeader>
       <TableBody>
-        {ItemRows.map((item, i) => {
-          return (
-            <TableRow key={item.product_name}>
-              <TableCell>{item.product_name}</TableCell>
-              <TableCell>{item.main_category}</TableCell>
-              <TableCell>{item.category}</TableCell>
-              <TableCell>{item.measurement_unit}</TableCell>
-              <TableCell>{item.unit}</TableCell>
-              <TableCell>
-                <span className="text-green-500">Active</span>
-              </TableCell>
-            </TableRow>
-          );
-        })}
+        {!isLoading &&
+          data?.map((item, i) => {
+            const mainCategory = categories?.find((cat) => {
+              return cat?.uniqueId == item?.mainCategory;
+            });
+            const subCategory = mainCategory?.subCategories?.find((cat) => {
+              return cat?.uniqueId == item?.subCategory;
+            });
+            return (
+              <TableRow key={item?.uniqueId}>
+                <TableCell>{item?.productName}</TableCell>
+                <TableCell>{mainCategory?.name}</TableCell>
+                <TableCell>{subCategory?.name}</TableCell>
+                <TableCell>{item?.measurementUnit}</TableCell>
+                <TableCell>{item?.weight}</TableCell>
+                <TableCell>
+                  <span className="text-green-500">Active</span>
+                </TableCell>
+              </TableRow>
+            );
+          })}
       </TableBody>
     </Table>
   );
 };
 
-const PriceList = ({ data }) => {
+const PriceList = ({ data, isLoading }) => {
+  if (isLoading) {
+    return <Loader />;
+  }
   return (
     <Table aria-label="Vendors List">
       <TableHeader>
         <TableColumn>Vendor Name</TableColumn>
         <TableColumn>Product Name</TableColumn>
-        <TableColumn>Price</TableColumn>
         <TableColumn>Currency</TableColumn>
-        <TableColumn>Status</TableColumn>
+        <TableColumn>Price</TableColumn>
+        {/* <TableColumn>Status</TableColumn> */}
         {/* <TableColumn>Edit</TableColumn> */}
         {/* <TableColumn>Delete</TableColumn> */}
       </TableHeader>
       <TableBody>
-        {PriceRows.map((item, i) => {
-          return (
-            <TableRow key={item.product_name}>
-              <TableCell>{item.vendor_name}</TableCell>
-              <TableCell>{item.product_name}</TableCell>
-              <TableCell>{item.price}</TableCell>
-              <TableCell>{item.currency}</TableCell>
-              <TableCell>
+        {!isLoading &&
+          data.map((item, i) => {
+            return (
+              <TableRow key={item?.uniqueId}>
+                <TableCell>{item?.vendorName}</TableCell>
+                <TableCell>{item?.itemName}</TableCell>
+                <TableCell>INR</TableCell>
+                <TableCell>{item.price}</TableCell>
+                {/* <TableCell>
                 <span className="text-green-500">Active</span>
-              </TableCell>
-            </TableRow>
-          );
-        })}
+              </TableCell> */}
+              </TableRow>
+            );
+          })}
       </TableBody>
     </Table>
   );

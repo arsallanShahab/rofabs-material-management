@@ -6,6 +6,7 @@ import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import useGet from "../../../lib/hooks/get-api";
 import {
   AddKitchenManagementInwardValidation,
   AddKitchenManagementOutwardValidation,
@@ -44,6 +45,15 @@ const AddKitchenManagement = () => {
     authorizedBy: "",
     utilizationType: "",
   });
+
+  const {
+    data: itemsData,
+    error: itemsError,
+    loading: itemsLoading,
+    invalidateCache: invalidateItemsCache,
+    refresh: refreshItemsData,
+    getData: getItemsData,
+  } = useGet({ showToast: false });
 
   const handleSubmitInward = async (values, { setSubmitting }) => {
     console.log(values);

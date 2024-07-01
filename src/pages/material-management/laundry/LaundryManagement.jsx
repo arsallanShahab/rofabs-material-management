@@ -17,15 +17,21 @@ import {
   TableRow,
   useDisclosure,
 } from "@nextui-org/react";
+import axios from "axios";
 import { FieldArray, Form, Formik } from "formik";
 import { Trash } from "lucide-react";
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
+import { toast } from "react-toastify";
+import * as Yup from "yup";
 import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import useGet from "../../../lib/hooks/get-api";
 import { AddLaundryOutwardValidation } from "../../../lib/validation/material-management/laundry";
+
+const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const ITEMS_DATA = [
   {
@@ -127,26 +133,81 @@ const LaundryManagement = () => {
 
   const [selectedInward, setSelectedInward] = useState({});
 
-  const [vendorDetails, setVendorDetails] = useState({
-    vendorName: "",
-    vendorID: "",
-  });
-
   const [initialValues, setInitialValues] = useState({
+    vendorId: "",
+    outDate: "",
     items: [
       {
-        productID: "",
-        productName: "",
+        productId: "",
         quantity: "",
       },
     ],
   });
 
+  const {
+    data: utilizationData,
+    error: utilizationError,
+    loading: utilizationLoading,
+    invalidateCache: invalidateUtilizationCache,
+    refresh: refreshUtilizationData,
+    getData: getUtilizationData,
+  } = useGet({ showToast: false });
+
+  const {
+    data: itemsData,
+    error: itemsError,
+    loading: itemsLoading,
+    invalidateCache: invalidateItemsCache,
+    refresh: refreshItemsData,
+    getData: getItemsData,
+  } = useGet({ showToast: false });
+
+  const {
+    data: allVendorsData,
+    error: allVendorsError,
+    loading: allVendorsLoading,
+    invalidateCache: invalidateAllVendorsCache,
+    refresh: refreshAllVendorsData,
+    getData: getAllVendorsData,
+  } = useGet({ showToast: false });
+
   const handleSubmitOutward = async (values, { setSubmitting }) => {
     setSubmitting(true);
-    console.log("values", values);
-    setSubmitting(false);
+    try {
+      const items = values.items.map((item) => {
+        return {
+          productId: item.productId,
+          quantity: item.quantity,
+          vendorId: values.vendorId,
+        };
+      });
+      const data = {
+        items,
+        propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
+        outDate: new Date(values.outDate).toISOString(),
+      };
+
+      const res = await axios.post(`${API_URL}/createLaundryOutward`, data);
+      toast.success(res?.data?.message || "Outward created successfully");
+    } catch (error) {
+      toast.error(error?.response?.data?.error || "An error occurred");
+    } finally {
+      setSubmitting(false);
+    }
   };
+
+  useEffect(() => {
+    if (activeTab == 1) {
+      getUtilizationData(
+        `${API_URL}/getLaundryOutwards?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+        "laundryOutwards"
+      );
+    }
+    if (activeTab == 2) {
+      getItemsData(`${API_URL}/getItems`, "items");
+      getAllVendorsData(`${API_URL}/getVendors`, "allVendors");
+    }
+  }, [activeTab]);
 
   return (
     <>
@@ -217,7 +278,16 @@ const LaundryManagement = () => {
           <FlexContainer variant="column-start">
             <Formik
               initialValues={initialValues}
-              validationSchema={AddLaundryOutwardValidation}
+              validationSchema={Yup.object().shape({
+                items: Yup.array().of(
+                  Yup.object().shape({
+                    productId: Yup.string().required("Please select a product"),
+                    quantity: Yup.number().required("Please enter quantity"),
+                  })
+                ),
+                vendorId: Yup.string().required("Please select a vendor"),
+                outDate: Yup.date().required("Please enter out date"),
+              })}
               onSubmit={handleSubmitOutward}
             >
               {({
@@ -247,34 +317,26 @@ const LaundryManagement = () => {
                                   className="lg:grid-cols-4"
                                 >
                                   <Select
-                                    name={`items.${index}.productName`}
+                                    name={`items.${index}.productId`}
                                     label="Product Name"
                                     labelPlacement="outside"
                                     placeholder="Select a product"
                                     radius="sm"
-                                    items={PRODUCT_DETAILS}
+                                    items={itemsData || []}
                                     classNames={{
                                       label: "font-medium text-zinc-100",
                                       inputWrapper: "border shadow-none",
                                     }}
                                     onChange={(e) => {
-                                      const product = PRODUCT_DETAILS.find(
-                                        (item) =>
-                                          item.id.toString() === e.target.value
-                                      );
                                       setFieldValue(
-                                        `items.${index}.productID`,
-                                        product.id
-                                      );
-                                      setFieldValue(
-                                        `items.${index}.productName`,
+                                        `items.${index}.productId`,
                                         e.target.value
                                       );
                                     }}
                                   >
                                     {(item) => (
-                                      <SelectItem key={item.id}>
-                                        {item.product_name}
+                                      <SelectItem key={item?.uniqueId}>
+                                        {item?.productName}
                                       </SelectItem>
                                     )}
                                   </Select>
@@ -345,31 +407,26 @@ const LaundryManagement = () => {
                         label="Select Vendor"
                         labelPlacement="outside"
                         placeholder="Select a vendor"
-                        name="vendorName"
+                        name="vendorId"
                         radius="sm"
                         classNames={{
                           label: "font-medium text-zinc-900",
                           trigger: "border shadow-none",
                         }}
-                        items={ITEMS_DATA}
+                        items={allVendorsData || []}
                         onChange={(e) => {
-                          setFieldValue("vendorName", e.target.value);
+                          setFieldValue("vendorId", e.target.value);
                         }}
                         // selectedKeys={[values.vendorName]}
-                        isInvalid={errors.vendorName && touched.vendorName}
+                        isInvalid={errors.vendorId && touched.vendorId}
                         color={
-                          errors.vendorName && touched.vendorName
-                            ? "danger"
-                            : ""
+                          errors.vendorId && touched.vendorId ? "danger" : ""
                         }
-                        errorMessage={errors.vendorName}
+                        errorMessage={errors.vendorId}
                       >
                         {(vendor) => (
-                          <SelectItem
-                            key={vendor.vendor_name}
-                            value={vendor.vendor_name}
-                          >
-                            {vendor.vendor_name}
+                          <SelectItem key={vendor?.uniqueId}>
+                            {vendor?.vendorName}
                           </SelectItem>
                         )}
                       </Select>

@@ -13,7 +13,7 @@ import {
   TableRow,
 } from "@nextui-org/react";
 import { Field, FieldArray, Form, Formik } from "formik";
-import React, { Fragment, useState } from "react";
+import React, { Fragment, act, useEffect, useState } from "react";
 import * as Yup from "yup";
 import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
@@ -22,8 +22,11 @@ import NextButton from "../../../components/micro/NextButton";
 import { AddVendorsValidation } from "../../../lib/validation/material-management/vendor";
 
 import { useDateFormatter } from "@react-aria/i18n";
+import axios, { AxiosError } from "axios";
 import { Trash } from "lucide-react";
+import { toast } from "react-toastify";
 import Tab from "../../../components/micro/Tab";
+import useGet from "../../../lib/hooks/get-api";
 
 const ITEMS_DATA = [
   {
@@ -196,12 +199,56 @@ const CATEGORIES_DATA = [
   },
 ];
 
+const API_URL = import.meta.env.VITE_SERVER_URL;
+
 const AddVendor = () => {
   const [activeTab, setActiveTab] = useState(1);
+  const [categories, setCategories] = useState([]);
 
   const handleTabClick = (index) => {
     setActiveTab(index);
   };
+
+  const {
+    data: AllCategoriesData,
+    error: AllCategoriesError,
+    loading: AllCategoriesLoading,
+    invalidateCache: invalidateAllCategoriesCache,
+    refresh: refreshAllCategories,
+    getData: getAllCategoriesData,
+  } = useGet({ showToast: false });
+
+  const {
+    data: allVendorsData,
+    error: allVendorsError,
+    loading: allVendorsLoading,
+    invalidateCache: invalidateAllVendorsCache,
+    refresh: refreshAllVendorsData,
+    getData: getAllVendorsData,
+  } = useGet({ showToast: false });
+
+  const {
+    data: itemsData,
+    error: itemsError,
+    loading: itemsLoading,
+    invalidateCache: invalidateItemsCache,
+    refresh: refreshItemsData,
+    getData: getItemsData,
+  } = useGet({ showToast: false });
+
+  useEffect(() => {
+    getAllCategoriesData(
+      `${API_URL}/getMinCategories?includeSubCategories=true`,
+      "categories"
+    );
+  }, []);
+
+  useEffect(() => {
+    if (activeTab === 3) {
+      getAllVendorsData(`${API_URL}/getVendors`, "allVendors");
+      getItemsData(`${API_URL}/getItems`, "items");
+    }
+  }, [activeTab]);
 
   const [initialValues, setInitialValues] = useState({
     name: "",
@@ -234,16 +281,71 @@ const AddVendor = () => {
     ],
   };
 
-  const handleAddVendor = (values, { resetForm }) => {
-    console.log(values);
+  const handleAddVendor = async (values, { resetForm }) => {
     const vendor = {
-      vendor_name: values.name,
-      vendor_email: values.email,
-      vendor_phone: values.phone,
-      vendor_address: values.address,
-      vendor_category: values.vendor_category,
+      vendorName: values.name,
+      vendorEmail: values.email,
+      vendorPhoneNumber: values.phone,
+      vendorAddress: values.address,
+      vendorCategory: values.vendor_category,
+      vendorStatus: true,
     };
+    try {
+      const res = await axios.post(`${API_URL}/createVendor`, vendor);
+      const { data } = res;
+      console.log(data, "created vendor");
+      toast.success("Vendor created successfully");
+      invalidateAllVendorsCache("allVendors");
+      refreshAllVendorsData();
+    } catch (error) {
+      toast.error(error?.response?.data?.error || "An error occurred");
+    }
     console.log(vendor);
+    // resetForm();
+  };
+
+  const handleAddItems = async (values, { resetForm }) => {
+    const items = values.items.map((item) => {
+      return {
+        subCategory: item.category,
+        mainCategory: item.mainCategory,
+        productName: item.productName,
+        measurementUnit: item.measurementUnit,
+        weight: item.unit,
+        status: item.isActive,
+      };
+    });
+    console.log(items);
+    try {
+      const res = await axios.post(`${API_URL}/createItems`, items);
+      const { data } = res;
+      console.log(data, "created items");
+      toast.success("Items created successfully");
+    } catch (error) {
+      toast.error(error?.response?.data?.error || "An error occurred");
+    }
+    // resetForm();
+  };
+
+  const handleUpdatePrice = async (values, { resetForm }) => {
+    const price = values.items.map((item) => {
+      return {
+        vendorUniqueId: item.vendorID,
+        itemUniqueId: item.productID,
+        price: parseInt(item.price),
+      };
+    });
+    console.log(price);
+    try {
+      const res = await axios.post(`${API_URL}/createPriceList`, {
+        items: price,
+      });
+      const { data } = res;
+      console.log(data, "updated price");
+      toast.success("Price updated successfully");
+    } catch (error) {
+      toast.error(error?.response?.data?.error || "An error occurred");
+    }
     // resetForm();
   };
   return (
@@ -378,22 +480,7 @@ const AddVendor = () => {
                         label: "font-medium text-zinc-900",
                         trigger: "border shadow-none",
                       }}
-                      items={[
-                        { value: "kitchen Management", key: "kitchen" },
-                        { value: "Laundry Management", key: "laundry" },
-                        {
-                          value: "House Keeping Management",
-                          key: "house-keeping",
-                        },
-                        {
-                          key: "electronics",
-                          value: "Electronics Management",
-                        },
-                        {
-                          key: "miscellaneous",
-                          value: "Miscellaneous Management",
-                        },
-                      ]}
+                      items={AllCategoriesData || []}
                       onChange={(e) => {
                         setFieldValue("vendor_category", e.target.value);
                       }}
@@ -411,9 +498,9 @@ const AddVendor = () => {
                         errors.vendor_category
                       }
                     >
-                      {(currency) => (
-                        <SelectItem key={currency.key}>
-                          {currency.value}
+                      {(categories) => (
+                        <SelectItem key={categories?.uniqueId}>
+                          {categories.name}
                         </SelectItem>
                       )}
                     </Select>
@@ -455,9 +542,7 @@ const AddVendor = () => {
                 })
               ),
             })}
-            onSubmit={(values, { resetForm, setFieldValue }) => {
-              console.log(values);
-            }}
+            onSubmit={handleAddItems}
           >
             {({
               isSubmitting,
@@ -487,6 +572,53 @@ const AddVendor = () => {
                                   className="lg:grid-cols-6"
                                 >
                                   <Select
+                                    label="Main Category"
+                                    labelPlacement="outside"
+                                    name={`items.${index}.mainCategory`}
+                                    placeholder="Select Main Category"
+                                    radius="sm"
+                                    classNames={{
+                                      label: "font-medium text-zinc-900",
+                                      trigger: "border shadow-none",
+                                    }}
+                                    items={AllCategoriesData || []}
+                                    onChange={(e) => {
+                                      setFieldValue(
+                                        `items.${index}.mainCategory`,
+                                        e.target.value
+                                      );
+                                      const category = AllCategoriesData.find(
+                                        (category) =>
+                                          category.uniqueId === e.target.value
+                                      );
+                                      setCategories(
+                                        category?.subCategories || []
+                                      );
+                                    }}
+                                    isInvalid={
+                                      errors.items &&
+                                      errors.items[index] &&
+                                      errors.items[index].mainCategory
+                                    }
+                                    color={
+                                      errors.items &&
+                                      errors.items[index] &&
+                                      errors.items[index].mainCategory &&
+                                      "danger"
+                                    }
+                                    errorMessage={
+                                      errors.items &&
+                                      errors.items[index] &&
+                                      errors.items[index].mainCategory
+                                    }
+                                  >
+                                    {(category) => (
+                                      <SelectItem key={category.uniqueId}>
+                                        {category.name}
+                                      </SelectItem>
+                                    )}
+                                  </Select>
+                                  <Select
                                     label="Select Category"
                                     labelPlacement="outside"
                                     name={`items.${index}.category`}
@@ -496,7 +628,7 @@ const AddVendor = () => {
                                       label: "font-medium text-zinc-900",
                                       trigger: "border shadow-none",
                                     }}
-                                    items={CATEGORIES_DATA}
+                                    items={categories}
                                     onChange={(e) => {
                                       setFieldValue(
                                         `items.${index}.category`,
@@ -521,53 +653,12 @@ const AddVendor = () => {
                                     }
                                   >
                                     {(category) => (
-                                      <SelectItem
-                                        key={category.category.toString()}
-                                      >
-                                        {category.category}
+                                      <SelectItem key={category?.uniqueId}>
+                                        {category.name}
                                       </SelectItem>
                                     )}
                                   </Select>
-                                  <Select
-                                    label="Main Category"
-                                    labelPlacement="outside"
-                                    name={`items.${index}.mainCategory`}
-                                    placeholder="Select Main Category"
-                                    radius="sm"
-                                    classNames={{
-                                      label: "font-medium text-zinc-900",
-                                      trigger: "border shadow-none",
-                                    }}
-                                    items={MainCategories}
-                                    onChange={(e) => {
-                                      setFieldValue(
-                                        `items.${index}.mainCategory`,
-                                        e.target.value
-                                      );
-                                    }}
-                                    isInvalid={
-                                      errors.items &&
-                                      errors.items[index] &&
-                                      errors.items[index].mainCategory
-                                    }
-                                    color={
-                                      errors.items &&
-                                      errors.items[index] &&
-                                      errors.items[index].mainCategory &&
-                                      "danger"
-                                    }
-                                    errorMessage={
-                                      errors.items &&
-                                      errors.items[index] &&
-                                      errors.items[index].mainCategory
-                                    }
-                                  >
-                                    {(category) => (
-                                      <SelectItem key={category.key}>
-                                        {category.value}
-                                      </SelectItem>
-                                    )}
-                                  </Select>
+
                                   <Input
                                     label="Product Name"
                                     labelPlacement="outside"
@@ -758,18 +849,12 @@ const AddVendor = () => {
               items: Yup.array().of(
                 Yup.object().shape({
                   vendorID: Yup.string().required("Vendor ID is required"),
-                  vendorName: Yup.string().required("Vendor Name is required"),
                   productID: Yup.string().required("Product ID is required"),
-                  productName: Yup.string().required(
-                    "Product Name is required"
-                  ),
                   price: Yup.string().required("Price is required"),
                 })
               ),
             })}
-            onSubmit={(values, { resetForm, setFieldValue }) => {
-              console.log(values);
-            }}
+            onSubmit={handleUpdatePrice}
           >
             {({
               isSubmitting,
@@ -808,20 +893,11 @@ const AddVendor = () => {
                                       label: "font-medium text-zinc-900",
                                       trigger: "border shadow-none",
                                     }}
-                                    items={VENDORS_DATA}
+                                    items={allVendorsData || []}
                                     onChange={(e) => {
-                                      const vendor = VENDORS_DATA.find(
-                                        (vendor) =>
-                                          vendor.id.toString() ===
-                                          e.target.value
-                                      );
                                       setFieldValue(
                                         `items.${index}.vendorID`,
                                         e.target.value
-                                      );
-                                      setFieldValue(
-                                        `items.${index}.vendorName`,
-                                        vendor.vendor_name
                                       );
                                     }}
                                     isInvalid={
@@ -842,8 +918,8 @@ const AddVendor = () => {
                                     }
                                   >
                                     {(vendor) => (
-                                      <SelectItem key={vendor.id.toString()}>
-                                        {vendor.vendor_name}
+                                      <SelectItem key={vendor?.uniqueId}>
+                                        {vendor.vendorName}
                                       </SelectItem>
                                     )}
                                   </Select>
@@ -857,20 +933,11 @@ const AddVendor = () => {
                                       label: "font-medium text-zinc-900",
                                       trigger: "border shadow-none",
                                     }}
-                                    items={ITEMS_DATA}
+                                    items={itemsData || []}
                                     onChange={(e) => {
-                                      const product = ITEMS_DATA.find(
-                                        (product) =>
-                                          product.id.toString() ===
-                                          e.target.value
-                                      );
                                       setFieldValue(
                                         `items.${index}.productID`,
                                         e.target.value
-                                      );
-                                      setFieldValue(
-                                        `items.${index}.productName`,
-                                        product.name
                                       );
                                     }}
                                     isInvalid={
@@ -891,8 +958,8 @@ const AddVendor = () => {
                                     }
                                   >
                                     {(product) => (
-                                      <SelectItem key={product.id.toString()}>
-                                        {product.name}
+                                      <SelectItem key={product?.uniqueId}>
+                                        {product?.productName}
                                       </SelectItem>
                                     )}
                                   </Select>
@@ -977,7 +1044,7 @@ const AddVendor = () => {
                       className="items-center p-5"
                     >
                       <NextButton type="submit" colorScheme="primary">
-                        Save Price
+                        Save Price Setting
                       </NextButton>
                     </FlexContainer>
                   </FlexContainer>
