@@ -248,16 +248,37 @@ const KitchenManagement = () => {
         <FlexContainer variant="column-start">
           <h3 className="text-lg font-semibold">Inward List</h3>
           <Table aria-label="Inward List">
-            <TableHeader>
-              <TableColumn>Product Name</TableColumn>
-              <TableColumn>Quantity</TableColumn>
-              <TableColumn>Utilization Type</TableColumn>
-              <TableColumn>Utilization Date</TableColumn>
-              <TableColumn>Authorized By</TableColumn>
+            <TableHeader
+              columns={[
+                {
+                  key: "product-name",
+                  label: "Product Name",
+                },
+                {
+                  key: "quantity",
+                  label: "Quantity",
+                },
+                {
+                  key: "utilization-type",
+                  label: "Utilization Type",
+                },
+                {
+                  key: "utilization-date",
+                  label: "Utilization Date",
+                },
+                {
+                  key: "authorized-by",
+                  label: "Authorized By",
+                },
+              ]}
+            >
+              {(column) => (
+                <TableColumn key={column.key}>{column.label}</TableColumn>
+              )}
             </TableHeader>
-            {!utilizationLoading && (
-              <TableBody>
-                {utilizationData?.map((utilization) => (
+            <TableBody>
+              {!utilizationLoading &&
+                utilizationData?.map((utilization) => (
                   <TableRow key={utilization?.uniqueId}>
                     <TableCell>{utilization?.productName}</TableCell>
                     <TableCell>{utilization?.quantity}</TableCell>
@@ -266,8 +287,7 @@ const KitchenManagement = () => {
                     <TableCell>{utilization?.authorisedBy}</TableCell>
                   </TableRow>
                 ))}
-              </TableBody>
-            )}
+            </TableBody>
           </Table>
         </FlexContainer>
       )}
@@ -306,7 +326,7 @@ const KitchenManagement = () => {
                         labelPlacement="outside"
                         placeholder="Select a product"
                         radius="sm"
-                        items={itemsData}
+                        items={itemsData || []}
                         classNames={{
                           label: "font-medium text-zinc-100",
                           inputWrapper: "border shadow-none",
@@ -323,7 +343,7 @@ const KitchenManagement = () => {
                       >
                         {(product) => (
                           <SelectItem key={product?.uniqueId}>
-                            {product.productName}
+                            {product?.productName}
                           </SelectItem>
                         )}
                       </Select>

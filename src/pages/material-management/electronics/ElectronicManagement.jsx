@@ -11,6 +11,7 @@ import {
   TableRow,
 } from "@nextui-org/react";
 import axios from "axios";
+import dayjs from "dayjs";
 import { Form, Formik } from "formik";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
@@ -40,7 +41,22 @@ const ElectronicManagement = () => {
     getData: getItemsData,
   } = useGet({ showToast: false });
 
+  const {
+    data: utilizationData,
+    error: utilizationError,
+    loading: utilizationLoading,
+    invalidateCache: invalidateUtilizationCache,
+    refresh: refreshUtilizationData,
+    getData: getUtilizationData,
+  } = useGet({ showToast: false });
+
   useEffect(() => {
+    if (activeTab === 1) {
+      getUtilizationData(
+        `${API_URL}/getElectronicsUtilizations?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+        "electronics-utilization"
+      );
+    }
     if (activeTab === 2) {
       getItemsData(`${API_URL}/getItems`, "items");
     }
@@ -65,6 +81,8 @@ const ElectronicManagement = () => {
         utilization
       );
       toast.success("Utilization created successfully");
+      invalidateUtilizationCache();
+      refreshUtilizationData();
     } catch (error) {
       toast.error(error?.response?.data?.error || "An error occurred");
     } finally {
@@ -111,18 +129,27 @@ const ElectronicManagement = () => {
           <TableHeader>
             <TableColumn>Product Name</TableColumn>
             <TableColumn>Quantity</TableColumn>
-            <TableColumn>Price</TableColumn>
-            <TableColumn>Vendor</TableColumn>
-            <TableColumn>Purchase Date</TableColumn>
+            <TableColumn>Damage Discription</TableColumn>
+            <TableColumn>Damage Amount </TableColumn>
+            <TableColumn>Date of Installation</TableColumn>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell>Samsung S23 Ultra</TableCell>
-              <TableCell>10</TableCell>
-              <TableCell>1000</TableCell>
-              <TableCell>Samsung</TableCell>
-              <TableCell>2021-08-01</TableCell>
-            </TableRow>
+            {!utilizationLoading &&
+              utilizationData?.map((utilization) => (
+                <TableRow key={utilization?.uniqueId}>
+                  <TableCell>{utilization?.productName}</TableCell>
+                  <TableCell>{utilization?.quantity}</TableCell>
+                  <TableCell>
+                    {utilization?.damageDescription || "N/P"}
+                  </TableCell>
+                  <TableCell>{utilization?.damageAmount || "N/P"}</TableCell>
+                  <TableCell>
+                    {dayjs(utilization?.dateOfInstallation).format(
+                      "DD-MM-YYYY"
+                    )}
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       )}

@@ -321,6 +321,8 @@ const AddVendor = () => {
       const { data } = res;
       console.log(data, "created items");
       toast.success("Items created successfully");
+      invalidateItemsCache("items");
+      refreshItemsData();
     } catch (error) {
       toast.error(error?.response?.data?.error || "An error occurred");
     }
