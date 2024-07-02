@@ -10,15 +10,20 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
+import axios from "axios";
 import { Form, Formik } from "formik";
 import { File, Trash } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import * as Yup from "yup";
 import ActionArea from "../../components/layout/ActionArea";
 import FlexContainer from "../../components/layout/FlexContainer";
 import GridContainer from "../../components/layout/GridContainer";
 import NextButton from "../../components/micro/NextButton";
 import Tab from "../../components/micro/Tab";
+import useGet from "../../lib/hooks/get-api";
+
+const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const EMPLOYEE_DATA = [
   {
@@ -79,6 +84,55 @@ const EmployeeManagement = () => {
     document.getElementById("dropzone-file").value = "";
   };
 
+  const {
+    data: employeeData,
+    error: employeeError,
+    loading: employeeLoading,
+    invalidateCache: invalidateEmployeeData,
+    refresh: refreshEmployeeData,
+    getData: getEmployeeData,
+  } = useGet({ showToast: false });
+  const {
+    data: designationData,
+    error: designationError,
+    loading: designationLoading,
+    invalidateCache: invalidateDesignationData,
+    refresh: refreshDesignationData,
+    getData: getDesignationData,
+  } = useGet({ showToast: false });
+
+  const handleSubmit = async (values, { setSubmitting }) => {
+    console.log(values);
+    try {
+      const res = await axios.post(`${API_URL}/createEmployee`, {
+        propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
+        name: values.name,
+        phoneNumber: values.phone,
+        address: values.address,
+        designationUniqueId: values.designation,
+        dateOfJoining: values.dateOfJoining,
+        department: values.department,
+        gender: values.gender,
+      });
+      toast.success(res?.data?.message || "Employee created successfully");
+      invalidateEmployeeData("employeeData");
+      refreshEmployeeData();
+    } catch (error) {
+      toast.error(error?.response?.data?.error || "Something went wrong");
+    }
+  };
+
+  useEffect(() => {
+    getDesignationData(
+      `${API_URL}/getDesignations?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      "designationData"
+    );
+    getEmployeeData(
+      `${API_URL}/getEmployees?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      "employeeData"
+    );
+  }, []);
+
   return (
     <FlexContainer variant="column-start" gap="xl">
       <ActionArea
@@ -117,24 +171,49 @@ const EmployeeManagement = () => {
               <TableColumn>Desgination</TableColumn>
               <TableColumn>Phone Number</TableColumn>
               <TableColumn>Address</TableColumn>
-              <TableColumn>Documents</TableColumn>
+              <TableColumn>Action</TableColumn>
+              {/* <TableColumn>Documents</TableColumn> */}
             </TableHeader>
             <TableBody>
-              {EMPLOYEE_DATA.map((employee) => (
-                <TableRow key={employee.id}>
-                  <TableCell>{employee.id}</TableCell>
-                  <TableCell>{employee.name}</TableCell>
-                  <TableCell>{employee.doj}</TableCell>
-                  <TableCell>{employee.designation}</TableCell>
-                  <TableCell>{employee.phone}</TableCell>
-                  <TableCell>{employee.address}</TableCell>
-                  <TableCell>
-                    <NextButton isIcon colorScheme="badge">
-                      <File className="w-4 h-4" />
-                    </NextButton>
-                  </TableCell>
-                </TableRow>
-              ))}
+              {!employeeLoading &&
+                employeeData?.length &&
+                employeeData?.map((employee, index) => (
+                  <TableRow key={employee?.uniqueId}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{employee?.name}</TableCell>
+                    <TableCell>{employee?.dateOfJoining}</TableCell>
+                    <TableCell>{employee?.designation?.[0]?.name}</TableCell>
+                    <TableCell>{employee?.phoneNumber}</TableCell>
+                    <TableCell>{employee?.address}</TableCell>
+                    {/* <TableCell>{employee?.documents}</TableCell> */}
+                    <TableCell>
+                      <NextButton
+                        isIcon
+                        type="badge"
+                        onClick={async () => {
+                          try {
+                            const res = await axios.delete(
+                              `${API_URL}/deleteEmployee?uniqueId=${employee?.uniqueId}`
+                            );
+                            toast.success(
+                              res?.data?.message ||
+                                "Employee deleted successfully"
+                            );
+                            invalidateEmployeeData("employeeData");
+                            refreshEmployeeData();
+                          } catch (error) {
+                            toast.error(
+                              error?.response?.data?.error ||
+                                "Something went wrong"
+                            );
+                          }
+                        }}
+                      >
+                        <Trash className="w-4 h-4" />
+                      </NextButton>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </FlexContainer>
@@ -153,10 +232,7 @@ const EmployeeManagement = () => {
             // avatar: Yup.string().required("Avatar is required
             // documents: Yup.string().required("Documents is required"),
           })}
-          onSubmit={(values, { setSubmitting }) => {
-            console.log(values);
-            setSubmitting(false);
-          }}
+          onSubmit={handleSubmit}
         >
           {({ values, errors, touched, handleChange, setFieldValue }) => (
             <Form>
@@ -212,26 +288,32 @@ const EmployeeManagement = () => {
                     error={errors.address && touched.address}
                     errorMessage={errors.address}
                   />
-                  <Input
+                  <Select
                     name="designation"
                     label="Designation"
-                    placeholder="Enter employee designation"
+                    placeholder="Select employee designation"
                     labelPlacement="outside"
                     radius="sm"
                     classNames={{
                       label: "font-medium text-zinc-900",
-                      inputWrapper: "border shadow-none",
+                      trigger: "border shadow-none",
                     }}
-                    onChange={handleChange}
-                    value={values.designation}
-                    color={
-                      errors.designation && touched.designation
-                        ? "danger"
-                        : "default"
+                    items={designationData || []}
+                    onChange={(e) => {
+                      setFieldValue("designation", e.target.value);
+                    }}
+                    selectedKeys={
+                      values?.designation ? [values.designation] : ""
                     }
                     error={errors.designation && touched.designation}
                     errorMessage={errors.designation}
-                  />
+                  >
+                    {(designation) => (
+                      <SelectItem key={designation?.uniqueId}>
+                        {designation?.name}
+                      </SelectItem>
+                    )}
+                  </Select>
                   <Input
                     type="date"
                     name="dateOfJoining"

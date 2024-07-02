@@ -14,6 +14,7 @@ import {
 } from "./pages/auth";
 import BanquetManagement from "./pages/banquet-management/BanquetManagement";
 import CreateEstimate from "./pages/banquet-management/CreateEstimate";
+import ManageHalls from "./pages/banquet-management/halls/ManageHalls";
 import CreateDutyRoaster from "./pages/duty-roaster-management/CreateDutyRoaster";
 import DutyRoasterManagement from "./pages/duty-roaster-management/DutyRoasterManagement";
 import {
@@ -124,8 +125,8 @@ const App = () => {
             </Route> */}
           </Route>
           <Route path="banquet">
-            <Route path="manage" element={<BanquetManagement />} />
-            <Route path="create-estimate" element={<CreateEstimate />} />
+            <Route index element={<BanquetManagement />} />
+            <Route path="manage-halls" element={<ManageHalls />} />
           </Route>
           <Route path="duty-roaster">
             <Route path="manage" element={<DutyRoasterManagement />} />

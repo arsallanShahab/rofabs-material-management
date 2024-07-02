@@ -38,8 +38,8 @@ const BanquetManagement = () => {
         subheading={"Banquet"}
         title={"Banquet Management"}
         showButton={true}
-        buttonHref={"/banquet/create-estimate"}
-        buttonText={"Create Estimate"}
+        buttonHref={"/banquet/manage-halls"}
+        buttonText={"Manage Halls"}
       />
       <Table>
         <TableHeader>
@@ -61,9 +61,7 @@ const BanquetManagement = () => {
                   onClick={() =>
                     navigate("/banquet/create-estimate", { state: banquet.id })
                   }
-                >
-                  Create Estimate
-                </NextButton>
+                ></NextButton>
               </TableCell>
             </TableRow>
           ))}

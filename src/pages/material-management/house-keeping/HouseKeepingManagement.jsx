@@ -60,7 +60,10 @@ const HouseKeepingManagement = () => {
       `${API_URL}/getHouseKeepingUtilizationEntries?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
       "house-keeping-utilization"
     );
-    getItemsData(`${API_URL}/getItems`, "items");
+    getItemsData(
+      `${API_URL}/getItems?mainCategory=ac1a15c4-3d10-4fd3-bc7a-a26654ae7a54`,
+      "items"
+    );
   }, []);
 
   const handleCreateUtilization = async (values, { setSubmitting }) => {

@@ -58,7 +58,10 @@ const ElectronicManagement = () => {
       );
     }
     if (activeTab === 2) {
-      getItemsData(`${API_URL}/getItems`, "items");
+      getItemsData(
+        `${API_URL}/getItems?mainCategory=d3901bf5-ca5e-4ec1-9925-1f0f864343af`,
+        "items"
+      );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [activeTab]);

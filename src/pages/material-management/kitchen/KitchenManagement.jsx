@@ -185,7 +185,10 @@ const KitchenManagement = () => {
       `${API_URL}/getKitchenUtilizationEntry`,
       "kitchen-utilization"
     );
-    getItemsData(`${API_URL}/getItems`, "items");
+    getItemsData(
+      `${API_URL}/getItems?mainCategory=1837f3a6-5eca-406d-8e6b-fade3e97d87b`,
+      "items"
+    );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 

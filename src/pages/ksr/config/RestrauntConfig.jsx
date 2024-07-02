@@ -9,15 +9,20 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
+import axios from "axios";
 import { FieldArray, Form, Formik } from "formik";
 import { Trash } from "lucide-react";
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import * as Yup from "yup";
 import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import useGet from "../../../lib/hooks/get-api";
+
+const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const RestrauntConfig = () => {
   const [activeTab, setActiveTab] = useState(1);
@@ -25,9 +30,47 @@ const RestrauntConfig = () => {
     setActiveTab(index);
   };
 
-  const handleSubmit = (values, { resetForm }) => {
-    console.log(values);
+  const {
+    data: restaurantData,
+    error: restaurantError,
+    loading: restaurantLoading,
+    invalidateCache: invalidateRestaurantCache,
+    refresh: refreshRestaurantData,
+    getData: getRestaurantData,
+  } = useGet({ showToast: false });
+
+  const handleSubmit = async (values, { resetForm }) => {
+    const restaurant = {
+      propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
+      restaurantName: values.restaurantName,
+      restaurantType: values.restaurantType,
+      tables: values.items.map((item) => ({
+        tableNumber: item.tableNumber,
+        seatCounts: item.seater,
+      })),
+    };
+
+    try {
+      const response = await axios.post(
+        `${API_URL}/ksr/createRestaurant`,
+        restaurant
+      );
+      toast.success(
+        response?.data?.message || "Restaurant Created Successfully"
+      );
+      invalidateRestaurantCache("restaurant");
+      refreshRestaurantData();
+    } catch (error) {
+      toast.error(error?.response?.data?.error || "Something went wrong");
+    }
   };
+
+  useEffect(() => {
+    getRestaurantData(
+      `${API_URL}/ksr/getRestaurants?propertyId=2a869149-342b-44c8-ad86-8f6465970638&includeTables=true`,
+      "restaurant"
+    );
+  }, []);
 
   return (
     <FlexContainer variant="column-start" gap="xl" className={"h-full"}>
@@ -55,17 +98,35 @@ const RestrauntConfig = () => {
               <TableColumn>S No.</TableColumn>
               <TableColumn>Restaurant Name</TableColumn>
               <TableColumn>Restaurant Type</TableColumn>
-              <TableColumn>Table Count</TableColumn>
-              <TableColumn>Seater Count</TableColumn>
+              <TableColumn>Table </TableColumn>
             </TableHeader>
             <TableBody>
-              <TableRow>
-                <TableCell>1</TableCell>
-                <TableCell>Hotel Taj</TableCell>
-                <TableCell>In-House Dining</TableCell>
-                <TableCell>10</TableCell>
-                <TableCell>50</TableCell>
-              </TableRow>
+              {!restaurantLoading &&
+                restaurantData?.restaurants &&
+                restaurantData?.restaurants?.map((restaurant, index) => (
+                  <TableRow key={restaurant?.uniqueId}>
+                    <TableCell>{index + 1}</TableCell>
+                    <TableCell>{restaurant?.restaurantName}</TableCell>
+                    <TableCell>{restaurant?.restaurantType}</TableCell>
+
+                    <TableCell>
+                      <Table aria-label="Table list">
+                        <TableHeader>
+                          <TableColumn>Table Number</TableColumn>
+                          <TableColumn>Seater</TableColumn>
+                        </TableHeader>
+                        <TableBody>
+                          {restaurant?.tables?.map((table, index) => (
+                            <TableRow key={index}>
+                              <TableCell>{table?.tableNumber}</TableCell>
+                              <TableCell>{table?.seatCounts}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableCell>
+                  </TableRow>
+                ))}
             </TableBody>
           </Table>
         </FlexContainer>

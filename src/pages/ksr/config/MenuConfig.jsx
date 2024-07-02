@@ -62,12 +62,14 @@ const MenuConfig = () => {
   useEffect(() => {
     if (activeTab === 1) {
       getCategoryData(
-        `${API_URL}/ksr/getDishMainCategories?propertyId=2a869149-342b-44c8-ad86-8f6465970638`
+        `${API_URL}/ksr/getDishMainCategories?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+        "dishCategory"
       );
     }
     if (activeTab === 2) {
       getDishData(
-        `${API_URL}/ksr/getDishInventories?propertyId=2a869149-342b-44c8-ad86-8f6465970638`
+        `${API_URL}/ksr/getDishInventories?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+        "dish"
       );
     }
   }, [activeTab]);
@@ -82,7 +84,7 @@ const MenuConfig = () => {
         }
       );
       toast.success(response?.data?.message || "Category Created Successfully");
-      invalidateCategoryCache();
+      invalidateCategoryCache("dishCategory");
       refreshCategoryData();
     } catch (error) {
       toast.error(error?.response?.data?.error || "Something went wrong");
@@ -96,7 +98,7 @@ const MenuConfig = () => {
         propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
       });
       toast.success(response?.data?.message || "Dish Created Successfully");
-      invalidateDishCache();
+      invalidateDishCache("dish");
       refreshDishData();
     } catch (error) {
       toast.error(error?.response?.data?.error || "Something went wrong");

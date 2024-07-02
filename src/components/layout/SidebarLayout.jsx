@@ -45,7 +45,7 @@ const Links = [
   },
   {
     name: "Banquet Management",
-    path: "/banquet/manage",
+    path: "/banquet",
     icon: <IndianRupee className="h-4 w-4 stroke-[2.2px]" />,
   },
   {

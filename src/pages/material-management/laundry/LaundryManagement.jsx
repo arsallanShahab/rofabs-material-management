@@ -204,7 +204,10 @@ const LaundryManagement = () => {
       );
     }
     if (activeTab == 2) {
-      getItemsData(`${API_URL}/getItems`, "items");
+      getItemsData(
+        `${API_URL}/getItems?mainCategory=74c4996c-ca7a-4d83-9646-557079e9debb`,
+        "items"
+      );
       getAllVendorsData(`${API_URL}/getVendors`, "allVendors");
     }
   }, [activeTab]);
@@ -252,6 +255,18 @@ const LaundryManagement = () => {
                 <TableColumn>Action</TableColumn>
               </TableHeader>
               <TableBody>
+                {!utilizationLoading &&
+                  utilizationData?.length &&
+                  utilizationData?.map((item) => (
+                    <TableRow key={item?.uniqueId}>
+                      <TableCell>{item?.vendorName}</TableCell>
+                      <TableCell>{item?.outDate}</TableCell>
+                      <TableCell>
+                        <NextButton>Delete</NextButton>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+
                 {OUTWARD_DATA.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>{item.vendor_name}</TableCell>

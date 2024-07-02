@@ -7,9 +7,11 @@ import {
   TableRow,
   getKeyValue,
 } from "@nextui-org/react";
+import axios from "axios";
 import { Pencil, Trash } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
 import Loader from "../../../components/Loader";
 import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
@@ -373,6 +375,8 @@ const VendorsManagement = () => {
           data={itemsData}
           isLoading={itemsLoading}
           categories={AllCategoriesData}
+          invalidateCache={invalidateItemsCache}
+          refresh={refreshItemsData}
         />
       )}
       {activeTab === 3 && (
@@ -436,7 +440,13 @@ const VendorList = ({ data, isLoading }) => {
   );
 };
 
-const ItemList = ({ data, isLoading, categories }) => {
+const ItemList = ({
+  data,
+  isLoading,
+  categories,
+  invalidateCache,
+  refresh,
+}) => {
   if (isLoading) {
     return <Loader />;
   }
@@ -449,6 +459,7 @@ const ItemList = ({ data, isLoading, categories }) => {
         <TableColumn>Measurement Unit</TableColumn>
         <TableColumn>Unit</TableColumn>
         <TableColumn>Status</TableColumn>
+        <TableColumn>Action</TableColumn>
         {/* <TableColumn>Edit</TableColumn> */}
         {/* <TableColumn>Delete</TableColumn> */}
       </TableHeader>
@@ -470,6 +481,33 @@ const ItemList = ({ data, isLoading, categories }) => {
                 <TableCell>{item?.weight}</TableCell>
                 <TableCell>
                   <span className="text-green-500">Active</span>
+                </TableCell>
+                <TableCell>
+                  <NextButton
+                    isIcon
+                    colorScheme="error"
+                    onClick={async () => {
+                      if (!item.uniqueId) {
+                        return toast.error("Item not found");
+                      }
+                      try {
+                        const res = await axios.delete(
+                          `${API_URL}/deleteItem?uniqueId=${item?.uniqueId}`
+                        );
+                        toast.success(
+                          res?.data?.message || "Item deleted successfully"
+                        );
+                        invalidateCache("items");
+                        refresh();
+                      } catch (error) {
+                        toast.error(
+                          error?.response?.data?.error || "Something went wrong"
+                        );
+                      }
+                    }}
+                  >
+                    <Trash className="w-4 h-4" />
+                  </NextButton>
                 </TableCell>
               </TableRow>
             );
