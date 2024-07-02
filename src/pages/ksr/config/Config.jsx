@@ -12,15 +12,35 @@ const KsrConfig = () => {
         subheading={"Config"}
         title={"Manage KSR Configurations"}
       />
-      <GridContainer className="lg:grid-cols-4 *:flex-1">
-        <Link to={"restraunt"}>
+      <GridContainer className="lg:grid-cols-5 *:flex-1">
+        <Link to={"restaurant"}>
           <FlexContainer
             variant="column-center"
             gap="none"
             className={"bg-zinc-100 rounded-xl p-3 border"}
           >
-            <h3 className="text-lg font-semibold">Restraunt</h3>
-            <p className="text-sm font-semibold">Restraunt Configurations</p>
+            <h3 className="text-lg font-semibold">Restaurant Layout</h3>
+            <p className="text-sm font-semibold">Restaurant Configurations</p>
+          </FlexContainer>
+        </Link>
+        <Link to={"menu"}>
+          <FlexContainer
+            variant="column-center"
+            gap="none"
+            className={"bg-zinc-100 rounded-xl p-3 border"}
+          >
+            <h3 className="text-lg font-semibold">Menu </h3>
+            <p className="text-sm font-semibold">Menu Configurations</p>
+          </FlexContainer>
+        </Link>
+        <Link to={"tax"}>
+          <FlexContainer
+            variant="column-center"
+            gap="none"
+            className={"bg-zinc-100 rounded-xl p-3 border"}
+          >
+            <h3 className="text-lg font-semibold">Tax </h3>
+            <p className="text-sm font-semibold">Tax Configurations</p>
           </FlexContainer>
         </Link>
         <Link to={"kot"}>

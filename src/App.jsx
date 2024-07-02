@@ -17,13 +17,14 @@ import CreateEstimate from "./pages/banquet-management/CreateEstimate";
 import CreateDutyRoaster from "./pages/duty-roaster-management/CreateDutyRoaster";
 import DutyRoasterManagement from "./pages/duty-roaster-management/DutyRoasterManagement";
 import {
-  CreateEmployee,
   EmployeeManagement,
+  ManageDesignation,
 } from "./pages/employee-management";
-import AddDesignation from "./pages/employee-management/designation/AddDesignation";
 import { CreateOrder, Inventory } from "./pages/ksr";
 import KsrConfig from "./pages/ksr/config/Config";
+import MenuConfig from "./pages/ksr/config/MenuConfig";
 import RestrauntConfig from "./pages/ksr/config/RestrauntConfig";
+import TaxConfig from "./pages/ksr/config/TaxConfig";
 import MaterialManagement from "./pages/material-management/MaterialManagement";
 import MiscellaneousManagement from "./pages/material-management/MiscellaneousManagement";
 import MaterialCategories from "./pages/material-management/categories/MaterialCategories";
@@ -74,7 +75,9 @@ const App = () => {
           <Route path="ksr">
             <Route path="config">
               <Route index element={<KsrConfig />} />
-              <Route path="restraunt" element={<RestrauntConfig />} />
+              <Route path="restaurant" element={<RestrauntConfig />} />
+              <Route path="menu" element={<MenuConfig />} />
+              <Route path="tax" element={<TaxConfig />} />
             </Route>
             <Route path="inventory" element={<Inventory />} />
             <Route path="create-order" element={<CreateOrder />} />
@@ -108,10 +111,7 @@ const App = () => {
           </Route>
           <Route path="employee">
             <Route path="manage" element={<EmployeeManagement />} />
-            <Route path="add" element={<CreateEmployee />} />
-            <Route path="designation">
-              <Route path="add" element={<AddDesignation />} />
-            </Route>
+            <Route path="designation" element={<ManageDesignation />} />
             {/* <Route path="edit">
               <Route path=":id" element={<EditProperty />} />
             </Route> */}

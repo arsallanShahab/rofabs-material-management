@@ -202,9 +202,9 @@ const CATEGORIES_DATA = [
 const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const AddVendor = () => {
-  const [activeTab, setActiveTab] = useState(1);
   const [categories, setCategories] = useState([]);
 
+  const [activeTab, setActiveTab] = useState(1);
   const handleTabClick = (index) => {
     setActiveTab(index);
   };

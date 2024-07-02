@@ -212,7 +212,7 @@ const ElectronicManagement = () => {
                   >
                     {(item) => (
                       <SelectItem key={item?.uniqueId}>
-                        {item.productName}
+                        {item?.productName}
                       </SelectItem>
                     )}
                   </Select>

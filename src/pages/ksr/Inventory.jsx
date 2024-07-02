@@ -164,9 +164,9 @@ const Inventory = () => {
 
         <FlexContainer variant="row-between" gap="xl">
           <h2 className="font-semibold text-xl">Inventory Items</h2>
-          <NextButton onClick={onOpen} colorScheme="badge">
+          {/* <NextButton onClick={onOpen} colorScheme="badge">
             Add new dish
-          </NextButton>
+          </NextButton> */}
         </FlexContainer>
         <FlexContainer variant="column-start" gap="md">
           {inventoryItems.map((item, index) => (

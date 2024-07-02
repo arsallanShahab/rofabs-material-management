@@ -1,4 +1,4 @@
-import CreateEmployee from "./CreateEmployee";
 import EmployeeManagement from "./EmployeeManagement";
+import ManageDesignation from "./designation/ManageDesignation";
 
-export { CreateEmployee, EmployeeManagement };
+export { EmployeeManagement, ManageDesignation };
