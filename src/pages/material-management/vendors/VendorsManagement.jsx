@@ -1,4 +1,8 @@
 import {
+  Dropdown,
+  DropdownItem,
+  DropdownMenu,
+  DropdownTrigger,
   Table,
   TableBody,
   TableCell,
@@ -8,7 +12,7 @@ import {
   getKeyValue,
 } from "@nextui-org/react";
 import axios from "axios";
-import { Pencil, Trash } from "lucide-react";
+import { EllipsisVertical, Pencil, Trash } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
@@ -286,13 +290,8 @@ const PriceRows = [
 ];
 
 const VendorsManagement = () => {
-  const [activeTab, setActiveTab] = useState(1);
   const [data, setData] = useState(VendorRows);
   const navigate = useNavigate();
-
-  const handleTabClick = (index) => {
-    setActiveTab(index);
-  };
 
   const {
     data: allVendorsData,
@@ -303,41 +302,8 @@ const VendorsManagement = () => {
     getData: getAllVendorsData,
   } = useGet({ showToast: false });
 
-  const {
-    data: priceListData,
-    error: priceListError,
-    loading: priceListLoading,
-    invalidateCache: invalidatePriceListCache,
-    refresh: refreshPriceListData,
-    getData: getPriceListData,
-  } = useGet({ showToast: false });
-
-  const {
-    data: itemsData,
-    error: itemsError,
-    loading: itemsLoading,
-    invalidateCache: invalidateItemsCache,
-    refresh: refreshItemsData,
-    getData: getItemsData,
-  } = useGet({ showToast: false });
-
-  const {
-    data: AllCategoriesData,
-    error: AllCategoriesError,
-    loading: AllCategoriesLoading,
-    invalidateCache: invalidateAllCategoriesCache,
-    refresh: refreshAllCategories,
-    getData: getAllCategoriesData,
-  } = useGet({ showToast: false });
-
   useEffect(() => {
     getAllVendorsData(`${API_URL}/getVendors`, "allVendors");
-    getItemsData(`${API_URL}/getItems`, "items");
-    getAllCategoriesData(
-      `${API_URL}/getMinCategories?includeSubCategories=true`,
-      "categories"
-    );
-    getPriceListData(`${API_URL}/getPriceLists`, "priceList");
   }, []);
 
   return (
@@ -348,40 +314,9 @@ const VendorsManagement = () => {
         title={"All Vendors"}
         showButton={true}
         buttonHref={"add"}
-        buttonText={"Vendor Config"}
+        buttonText={"Add Vendor"}
       />
-      <FlexContainer variant="row-start" className="overflow-x-auto">
-        <Tab
-          title="Vendor List"
-          isActiveTab={activeTab === 1}
-          onClick={() => handleTabClick(1)}
-        />
-        <Tab
-          title="Items List"
-          isActiveTab={activeTab === 2}
-          onClick={() => handleTabClick(2)}
-        />
-        <Tab
-          title="Price list"
-          isActiveTab={activeTab === 3}
-          onClick={() => handleTabClick(3)}
-        />
-      </FlexContainer>
-      {activeTab === 1 && (
-        <VendorList data={allVendorsData} isLoading={allVendorsLoading} />
-      )}
-      {activeTab === 2 && (
-        <ItemList
-          data={itemsData}
-          isLoading={itemsLoading}
-          categories={AllCategoriesData}
-          invalidateCache={invalidateItemsCache}
-          refresh={refreshItemsData}
-        />
-      )}
-      {activeTab === 3 && (
-        <PriceList data={priceListData} isLoading={priceListLoading} />
-      )}
+      <VendorList data={allVendorsData} isLoading={allVendorsLoading} />
     </FlexContainer>
   );
 };
@@ -397,27 +332,41 @@ const VendorList = ({ data, isLoading }) => {
         <TableColumn>Email</TableColumn>
         <TableColumn>Phone</TableColumn>
         <TableColumn>Address</TableColumn>
-        <TableColumn>Vendor Category</TableColumn>
-        <TableColumn>Status</TableColumn>
-        {/* <TableColumn>Edit</TableColumn> */}
-        <TableColumn>Terminate</TableColumn>
+        <TableColumn className="rounded-r-xl">Vendor Category</TableColumn>
+        <TableColumn className="bg-white"></TableColumn>
       </TableHeader>
       <TableBody>
         {!isLoading &&
           data?.map((item, i) => {
             return (
-              <TableRow key={item?.uniqueId}>
+              <TableRow
+                href={`/vendors/details/${item?.uniqueId}`}
+                key={item?.uniqueId}
+                className="cursor-pointer"
+              >
                 <TableCell>{item?.vendorName}</TableCell>
                 <TableCell>{item?.vendorEmail}</TableCell>
                 <TableCell>{item?.vendorPhoneNumber}</TableCell>
                 <TableCell>{item?.vendorAddress}</TableCell>
                 <TableCell>{item?.vendorStatus}</TableCell>
                 <TableCell>
-                  {item.vendorStatus == "true" ? (
-                    <span className="text-green-500">Active</span>
-                  ) : (
-                    <span className="text-red-500">Inactive</span>
-                  )}
+                  <Dropdown>
+                    <DropdownTrigger>
+                      <NextButton isIcon colorScheme="flat">
+                        <EllipsisVertical className="w-4 h-4" />
+                      </NextButton>
+                    </DropdownTrigger>
+                    <DropdownMenu aria-label="Static Actions">
+                      <DropdownItem key="edit">Edit</DropdownItem>
+                      <DropdownItem
+                        key="delete"
+                        className="text-danger"
+                        color="danger"
+                      >
+                        Delete
+                      </DropdownItem>
+                    </DropdownMenu>
+                  </Dropdown>
                 </TableCell>
                 {/* <TableCell>
                   <NextButton
@@ -427,123 +376,6 @@ const VendorList = ({ data, isLoading }) => {
                     <Pencil className="w-4 h-4" />
                   </NextButton>
                 </TableCell> */}
-                <TableCell>
-                  <NextButton isIcon colorScheme="error">
-                    <Trash className="w-4 h-4" />
-                  </NextButton>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-      </TableBody>
-    </Table>
-  );
-};
-
-const ItemList = ({
-  data,
-  isLoading,
-  categories,
-  invalidateCache,
-  refresh,
-}) => {
-  if (isLoading) {
-    return <Loader />;
-  }
-  return (
-    <Table aria-label="Vendors List">
-      <TableHeader>
-        <TableColumn>Product Name</TableColumn>
-        <TableColumn>Main Category</TableColumn>
-        <TableColumn>Category</TableColumn>
-        <TableColumn>Measurement Unit</TableColumn>
-        <TableColumn>Unit</TableColumn>
-        <TableColumn>Status</TableColumn>
-        <TableColumn>Action</TableColumn>
-        {/* <TableColumn>Edit</TableColumn> */}
-        {/* <TableColumn>Delete</TableColumn> */}
-      </TableHeader>
-      <TableBody>
-        {!isLoading &&
-          data?.map((item, i) => {
-            const mainCategory = categories?.find((cat) => {
-              return cat?.uniqueId == item?.mainCategory;
-            });
-            const subCategory = mainCategory?.subCategories?.find((cat) => {
-              return cat?.uniqueId == item?.subCategory;
-            });
-            return (
-              <TableRow key={item?.uniqueId}>
-                <TableCell>{item?.productName}</TableCell>
-                <TableCell>{mainCategory?.name}</TableCell>
-                <TableCell>{subCategory?.name}</TableCell>
-                <TableCell>{item?.measurementUnit}</TableCell>
-                <TableCell>{item?.weight}</TableCell>
-                <TableCell>
-                  <span className="text-green-500">Active</span>
-                </TableCell>
-                <TableCell>
-                  <NextButton
-                    isIcon
-                    colorScheme="error"
-                    onClick={async () => {
-                      if (!item.uniqueId) {
-                        return toast.error("Item not found");
-                      }
-                      try {
-                        const res = await axios.delete(
-                          `${API_URL}/deleteItem?uniqueId=${item?.uniqueId}`
-                        );
-                        toast.success(
-                          res?.data?.message || "Item deleted successfully"
-                        );
-                        invalidateCache("items");
-                        refresh();
-                      } catch (error) {
-                        toast.error(
-                          error?.response?.data?.error || "Something went wrong"
-                        );
-                      }
-                    }}
-                  >
-                    <Trash className="w-4 h-4" />
-                  </NextButton>
-                </TableCell>
-              </TableRow>
-            );
-          })}
-      </TableBody>
-    </Table>
-  );
-};
-
-const PriceList = ({ data, isLoading }) => {
-  if (isLoading) {
-    return <Loader />;
-  }
-  return (
-    <Table aria-label="Vendors List">
-      <TableHeader>
-        <TableColumn>Vendor Name</TableColumn>
-        <TableColumn>Product Name</TableColumn>
-        <TableColumn>Currency</TableColumn>
-        <TableColumn>Price</TableColumn>
-        {/* <TableColumn>Status</TableColumn> */}
-        {/* <TableColumn>Edit</TableColumn> */}
-        {/* <TableColumn>Delete</TableColumn> */}
-      </TableHeader>
-      <TableBody>
-        {!isLoading &&
-          data.map((item, i) => {
-            return (
-              <TableRow key={item?.uniqueId}>
-                <TableCell>{item?.vendorName}</TableCell>
-                <TableCell>{item?.itemName}</TableCell>
-                <TableCell>INR</TableCell>
-                <TableCell>{item.price}</TableCell>
-                {/* <TableCell>
-                <span className="text-green-500">Active</span>
-              </TableCell> */}
               </TableRow>
             );
           })}

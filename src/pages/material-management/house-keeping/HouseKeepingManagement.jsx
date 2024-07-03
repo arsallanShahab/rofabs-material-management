@@ -61,7 +61,7 @@ const HouseKeepingManagement = () => {
       "house-keeping-utilization"
     );
     getItemsData(
-      `${API_URL}/getItems?mainCategory=ac1a15c4-3d10-4fd3-bc7a-a26654ae7a54`,
+      `${API_URL}/getItems?mainCategory=6f81fc95-57fe-4a6e-9834-256c78733563`,
       "items"
     );
   }, []);

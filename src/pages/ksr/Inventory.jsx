@@ -356,7 +356,6 @@ const Inventory = () => {
                       <TableColumn>Table Number</TableColumn>
                       <TableColumn>Room Number</TableColumn>
                       <TableColumn>view</TableColumn>
-                      <TableColumn className="text-right">Action</TableColumn>
                     </TableHeader>
                     <TableBody>
                       <TableRow>
@@ -383,7 +382,6 @@ const Inventory = () => {
                             view
                           </NextButton>
                         </TableCell>
-                        <TableCell></TableCell>
                       </TableRow>
                     </TableBody>
                   </Table>

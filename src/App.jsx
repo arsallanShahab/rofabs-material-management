@@ -13,7 +13,11 @@ import {
   VerifyEmail,
 } from "./pages/auth";
 import BanquetManagement from "./pages/banquet-management/BanquetManagement";
-import CreateEstimate from "./pages/banquet-management/CreateEstimate";
+import ManageBookings from "./pages/banquet-management/ManageBookings";
+import CreateDecorationPlans from "./pages/banquet-management/decoration-plans/CreateDecorationPlans";
+import ManageDecorationPlans from "./pages/banquet-management/decoration-plans/ManageDecorationPlans";
+import CreateFoodPlans from "./pages/banquet-management/food-plans/CreateFoodPlans";
+import ManageFoodPlans from "./pages/banquet-management/food-plans/ManageFoodPlans";
 import ManageHalls from "./pages/banquet-management/halls/ManageHalls";
 import CreateDutyRoaster from "./pages/duty-roaster-management/CreateDutyRoaster";
 import DutyRoasterManagement from "./pages/duty-roaster-management/DutyRoasterManagement";
@@ -28,6 +32,7 @@ import RestrauntConfig from "./pages/ksr/config/RestrauntConfig";
 import TaxConfig from "./pages/ksr/config/TaxConfig";
 import MaterialManagement from "./pages/material-management/MaterialManagement";
 import MiscellaneousManagement from "./pages/material-management/MiscellaneousManagement";
+import AddSubCategories from "./pages/material-management/categories/AddSubCategories";
 import MaterialCategories from "./pages/material-management/categories/MaterialCategories";
 import {
   AddElectronicsManagement,
@@ -38,6 +43,9 @@ import {
   HouseKeepingManagement,
 } from "./pages/material-management/house-keeping";
 import AddInventory from "./pages/material-management/inventory/AddInventory";
+import CreatePurchaseOrder from "./pages/material-management/inventory/CreatePurchaseOrder";
+import CreateItems from "./pages/material-management/items/CreateItems";
+import ManageItems from "./pages/material-management/items/ManageItems";
 import {
   AddKitchenManagement,
   KitchenManagement,
@@ -51,6 +59,8 @@ import {
   EditVendor,
   VendorsManagement,
 } from "./pages/material-management/vendors";
+import AddItems from "./pages/material-management/vendors/AddItems";
+import VendorDetails from "./pages/material-management/vendors/VendorDetails";
 import CreatePayment from "./pages/payroll-management/CreatePayment";
 import PayrollManagement from "./pages/payroll-management/PayrollManagement";
 import { AddProperty, EditProperty, ListProperty } from "./pages/property";
@@ -85,8 +95,20 @@ const App = () => {
           </Route>
           <Route path="material-management">
             <Route index element={<MaterialManagement />} />
-            <Route path="categories" element={<MaterialCategories />} />
-            <Route path="inventory" element={<AddInventory />} />
+            <Route path="items">
+              <Route index element={<ManageItems />} />
+              <Route path="create" element={<CreateItems />} />
+            </Route>
+            <Route path="categories">
+              <Route index element={<MaterialCategories />} />
+              <Route path="sub-categories/add" element={<AddSubCategories />} />
+            </Route>
+            <Route path="inventory">
+              <Route index element={<AddInventory />} />
+              <Route path="purchase-order">
+                <Route path="create" element={<CreatePurchaseOrder />} />
+              </Route>
+            </Route>
             <Route path="house-keeping">
               <Route index element={<HouseKeepingManagement />} />
               <Route path="add" element={<AddHouseKeepingManagement />} />
@@ -103,12 +125,18 @@ const App = () => {
               <Route index element={<ElectronicManagement />} />
               <Route path="add" element={<AddElectronicsManagement />} />
             </Route>
-            <Route path="vendors">
-              <Route index element={<VendorsManagement />} />
-              <Route path="add" element={<AddVendor />} />
-              <Route path="edit" element={<EditVendor />} />
-            </Route>
             <Route path="miscellaneous" element={<MiscellaneousManagement />} />
+          </Route>
+          <Route path="vendors">
+            <Route index element={<VendorsManagement />} />
+            <Route path="add">
+              <Route index element={<AddVendor />} />
+              <Route path="items" element={<AddItems />} />
+            </Route>
+            <Route path="edit" element={<EditVendor />} />
+            <Route path="details">
+              <Route path=":id" element={<VendorDetails />} />
+            </Route>
           </Route>
           <Route path="employee">
             <Route path="manage" element={<EmployeeManagement />} />
@@ -126,7 +154,18 @@ const App = () => {
           </Route>
           <Route path="banquet">
             <Route index element={<BanquetManagement />} />
-            <Route path="manage-halls" element={<ManageHalls />} />
+            <Route path="bookings" element={<ManageBookings />} />
+            <Route path="manage">
+              <Route path="halls" element={<ManageHalls />} />
+              <Route path="food-plans">
+                <Route index element={<ManageFoodPlans />} />
+                <Route path="create" element={<CreateFoodPlans />} />
+              </Route>
+              <Route path="decoration-plans">
+                <Route index element={<ManageDecorationPlans />} />
+                <Route path="create" element={<CreateDecorationPlans />} />
+              </Route>
+            </Route>
           </Route>
           <Route path="duty-roaster">
             <Route path="manage" element={<DutyRoasterManagement />} />

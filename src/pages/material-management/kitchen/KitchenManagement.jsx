@@ -186,7 +186,7 @@ const KitchenManagement = () => {
       "kitchen-utilization"
     );
     getItemsData(
-      `${API_URL}/getItems?mainCategory=1837f3a6-5eca-406d-8e6b-fade3e97d87b`,
+      `${API_URL}/getItems?mainCategory=e45e0268-0304-46a1-a3df-96e4199975e4`,
       "items"
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps

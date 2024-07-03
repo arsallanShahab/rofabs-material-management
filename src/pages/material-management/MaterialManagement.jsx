@@ -12,8 +12,8 @@ const MaterialManagement = () => {
   const subheading = "Material";
   const title = "Materials Management";
   const showButton = true;
-  const buttonHref = "vendors";
-  const buttonText = "All Vendors";
+  const buttonHref = "/vendors";
+  const buttonText = "Vendors Management";
 
   return (
     <FlexContainer variant="column-start" gap="xl">
@@ -38,16 +38,24 @@ const MaterialManagement = () => {
           </FlexContainer>
         </FlexContainer>
         <FlexContainer className={"items-center"}>
-          <NextButton href={"categories"}>Manage Categories</NextButton>
-          <NextButton href={"inventory"}>Add Inventory</NextButton>
-          {showButton && (
-            <NextButton colorScheme="primary" href={buttonHref}>
-              {buttonText}
-            </NextButton>
-          )}
+          <NextButton href={"items"} colorScheme="secondary">
+            In House Inventory
+          </NextButton>
+          <NextButton href={"categories"} colorScheme="secondary">
+            Manage Categories
+          </NextButton>
+          <NextButton href={"items/create"} colorScheme="secondary">
+            Market Management
+          </NextButton>
+          <NextButton href={"inventory"} colorScheme="secondary">
+            Add Inventory
+          </NextButton>
+          <NextButton colorScheme="primary" href={buttonHref}>
+            {buttonText}
+          </NextButton>
         </FlexContainer>
       </FlexContainer>
-      <GridContainer className="lg:grid-cols-4 *:flex-1">
+      <GridContainer className="lg:grid-cols-5 *:flex-1">
         <Link to={"kitchen"}>
           <FlexContainer
             variant="column-center"
@@ -86,6 +94,16 @@ const MaterialManagement = () => {
           >
             <h3 className="text-lg font-semibold">Electronics</h3>
             <p className="text-sm font-semibold">Manage Electronics Items</p>
+          </FlexContainer>
+        </Link>
+        <Link to={"miscellaneous"}>
+          <FlexContainer
+            variant="column-center"
+            gap="none"
+            className={"bg-zinc-100 rounded-xl p-3 border"}
+          >
+            <h3 className="text-lg font-semibold">Miscellaneous</h3>
+            <p className="text-sm font-semibold">Miscellaneous Items</p>
           </FlexContainer>
         </Link>
         {/* <Link to={"vendors"}>

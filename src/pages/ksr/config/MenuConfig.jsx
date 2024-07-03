@@ -236,19 +236,6 @@ const MenuConfig = () => {
               <Form>
                 <FlexContainer variant="column-start" gap="xl">
                   <GridContainer>
-                    <Input
-                      label="Product Name"
-                      labelPlacement="outside"
-                      placeholder="Enter Product Name"
-                      name="productName"
-                      radius="sm"
-                      classNames={{
-                        label: "font-medium text-zinc-800",
-                        inputWrapper: "border shadow-none",
-                      }}
-                      value={values.productName}
-                      onChange={handleChange}
-                    />
                     <Select
                       name="dishMainCategoryUniqueId"
                       label="Select Category"
@@ -273,6 +260,20 @@ const MenuConfig = () => {
                         </SelectItem>
                       )}
                     </Select>
+                    <Input
+                      label="Product Name"
+                      labelPlacement="outside"
+                      placeholder="Enter Product Name"
+                      name="productName"
+                      radius="sm"
+                      classNames={{
+                        label: "font-medium text-zinc-800",
+                        inputWrapper: "border shadow-none",
+                      }}
+                      value={values.productName}
+                      onChange={handleChange}
+                    />
+
                     <Input
                       label="Quantity"
                       labelPlacement="outside"

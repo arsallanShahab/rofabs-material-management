@@ -59,7 +59,7 @@ const ElectronicManagement = () => {
     }
     if (activeTab === 2) {
       getItemsData(
-        `${API_URL}/getItems?mainCategory=d3901bf5-ca5e-4ec1-9925-1f0f864343af`,
+        `${API_URL}/getItems?mainCategory=4e969e6d-6e56-4fa4-bac9-d7e931f63346`,
         "items"
       );
     }

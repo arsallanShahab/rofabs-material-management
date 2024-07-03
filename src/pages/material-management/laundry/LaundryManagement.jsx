@@ -205,7 +205,7 @@ const LaundryManagement = () => {
     }
     if (activeTab == 2) {
       getItemsData(
-        `${API_URL}/getItems?mainCategory=74c4996c-ca7a-4d83-9646-557079e9debb`,
+        `${API_URL}/getItems?mainCategory=c23010dc-d0c6-436e-bc2f-197010024e11`,
         "items"
       );
       getAllVendorsData(`${API_URL}/getVendors`, "allVendors");
