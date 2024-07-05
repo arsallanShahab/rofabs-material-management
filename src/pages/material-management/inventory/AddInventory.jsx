@@ -454,32 +454,48 @@ const AddInventory = () => {
                                 Damages
                               </Checkbox>
                               {values.damages && (
-                                <Input
-                                  name="description"
-                                  labelPlacement="outside"
-                                  label="Description"
-                                  radius="sm"
-                                  classNames={{
-                                    label: "font-medium text-zinc-800",
-                                    inputWrapper: "border shadow-none",
-                                  }}
-                                  placeholder="Enter description"
-                                  value={values.description}
-                                  onChange={handleChange}
-                                  onBlur={handleBlur}
-                                  isInvalid={
-                                    errors.description && touched.description
-                                  }
-                                  color={
-                                    errors.description && touched.description
-                                      ? "danger"
-                                      : ""
-                                  }
-                                  error={
-                                    errors.description && touched.description
-                                  }
-                                  errorMessage={errors.description}
-                                />
+                                <>
+                                  <Input
+                                    name="damagedQuantity"
+                                    labelPlacement="outside"
+                                    label="Damaged Quantity"
+                                    radius="sm"
+                                    classNames={{
+                                      label: "font-medium text-zinc-800",
+                                      inputWrapper: "border shadow-none",
+                                    }}
+                                    placeholder="Enter damaged quantity"
+                                    value={values.damagedQuantity}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                  />
+                                  <Input
+                                    name="description"
+                                    labelPlacement="outside"
+                                    label="Description"
+                                    radius="sm"
+                                    classNames={{
+                                      label: "font-medium text-zinc-800",
+                                      inputWrapper: "border shadow-none",
+                                    }}
+                                    placeholder="Enter description"
+                                    value={values.description}
+                                    onChange={handleChange}
+                                    onBlur={handleBlur}
+                                    isInvalid={
+                                      errors.description && touched.description
+                                    }
+                                    color={
+                                      errors.description && touched.description
+                                        ? "danger"
+                                        : ""
+                                    }
+                                    error={
+                                      errors.description && touched.description
+                                    }
+                                    errorMessage={errors.description}
+                                  />
+                                </>
                               )}
                             </GridContainer>
                             <FlexContainer variant="row-end">
