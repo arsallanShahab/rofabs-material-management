@@ -25,7 +25,7 @@ const CreatePurchaseOrder = () => {
         productName: "",
         quantity: "",
         incomingDate: null,
-        expiryDate: null,
+        price: "",
       },
     ],
   };
@@ -269,44 +269,21 @@ const CreatePurchaseOrder = () => {
                                 onBlur={handleBlur}
                               />
                               <Input
-                                name={`items[${index}].expiryDate`}
+                                label="Price"
                                 labelPlacement="outside"
-                                label="Expiry Date"
-                                type="date"
+                                name={`items[${index}].price`}
+                                type="number"
+                                placeholder="Enter Price"
                                 radius="sm"
                                 classNames={{
-                                  label: "font-medium text-zinc-800",
+                                  label: "font-medium text-zinc-900",
                                   inputWrapper: "border shadow-none",
                                 }}
-                                value={values.items[index].expiryDate}
-                                onChange={(date) => {
-                                  setFieldValue(
-                                    `items[${index}].expiryDate`,
-                                    date.target.value
-                                  );
-                                }}
+                                onChange={handleChange}
                                 onBlur={handleBlur}
-                                isInvalid={
-                                  errors.items &&
-                                  errors.items[index] &&
-                                  errors.items[index].expiryDate
-                                }
-                                color={
-                                  errors.items &&
-                                  errors.items[index] &&
-                                  errors.items[index].expiryDate
-                                }
-                                error={
-                                  errors.items &&
-                                  errors.items[index] &&
-                                  errors.items[index].expiryDate
-                                }
-                                errorMessage={
-                                  errors.items &&
-                                  errors.items[index] &&
-                                  errors.items[index].expiryDate
-                                }
+                                value={values.items[index].price}
                               />
+
                               <FlexContainer className={"items-center"}>
                                 <NextButton
                                   onClick={() => arrayHelpers.remove(index)}
