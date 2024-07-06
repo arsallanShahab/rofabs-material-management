@@ -10,6 +10,7 @@ import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
+import { API_TAGS } from "../../../lib/consts/API_TAGS";
 import useGet from "../../../lib/hooks/get-api";
 
 const API_URL = import.meta.env.VITE_SERVER_URL;
@@ -18,24 +19,23 @@ const CreatePurchaseOrder = () => {
   const initialValues = {
     incomingDate: "",
     vendorID: "",
-    vendorName: "",
     items: [
       {
         productID: "",
-        productName: "",
         quantity: "",
-        incomingDate: null,
         price: "",
+        unit: "",
+        noOfProduct: "",
       },
     ],
   };
   const {
-    data: itemsData,
-    error: itemsError,
-    loading: itemsLoading,
-    invalidateCache: invalidateItemsCache,
-    refresh: refreshItemsData,
-    getData: getItemsData,
+    data: marketPlaceItemsData,
+    error: marketPlaceItemsError,
+    loading: marketPlaceItemsLoading,
+    invalidateCache,
+    refresh,
+    getData: getMarketPlaceItemsData,
   } = useGet({ showToast: false });
   const {
     data: allVendorsData,
@@ -47,14 +47,29 @@ const CreatePurchaseOrder = () => {
   } = useGet({ showToast: false });
 
   const handleAddInventory = async (values) => {
+    console.log(values);
+    if (!values?.items?.length) {
+      toast.error("Add at least one item");
+    }
+    if (!values.vendorID) {
+      toast.error("Select a vendor");
+    }
+    if (!values.incomingDate) {
+      toast.error("Select incoming date");
+    }
+
+    // return;
     const { items } = values;
+    const incomingDate = new Date(values.incomingDate).toISOString();
     const itemsData = items.map((item) => {
       return {
-        vendorId: item.vendorID,
         productId: item.productID,
         quantity: item.quantity,
-        incomingDate: new Date(item.incomingDate).toISOString(),
-        expiryDate: new Date(item.expiryDate).toISOString(),
+        unit: item.unit,
+        noOfProducts: item.noOfProduct,
+        vendorId: values.vendorID,
+        incomingDate: incomingDate,
+        // expiryDate: new Date(item.expiryDate).toISOString(),
       };
     });
     console.log(itemsData);
@@ -74,7 +89,10 @@ const CreatePurchaseOrder = () => {
   };
   useEffect(() => {
     getAllVendorsData(`${API_URL}/getVendors`, "allVendors");
-    getItemsData(`${API_URL}/getItems`, "items");
+    getMarketPlaceItemsData(
+      `${API_URL}/getMarketItems`,
+      API_TAGS.GET_MARKETPLACE_ITEMS
+    );
   }, []);
 
   return (
@@ -84,19 +102,7 @@ const CreatePurchaseOrder = () => {
         subheading={"Create"}
         title={"Create Purchase Order"}
       />
-      <Formik
-        initialValues={initialValues}
-        onSubmit={handleAddInventory}
-        // validationSchema={Yup.object().shape({
-        //   vendorID: Yup.string().required("Vendor is required"),
-        //   items: Yup.array().of(
-        //     Yup.object().shape({
-        //       productID: Yup.string().required("Product is required"),
-        //       quantity: Yup.number().required("Quantity is required").min(1),
-        //     })
-        //   ),
-        // })}
-      >
+      <Formik initialValues={initialValues} onSubmit={handleAddInventory}>
         {({
           values,
           handleChange,
@@ -174,38 +180,13 @@ const CreatePurchaseOrder = () => {
                                   label: "font-medium text-zinc-900",
                                   trigger: "border shadow-none",
                                 }}
-                                items={itemsData || []}
-                                // selectedKeys={
-                                //   values.items[index].productID
-                                //     ? [values.items[index].productID]
-                                //     : []
-                                // }
+                                items={marketPlaceItemsData || []}
                                 onChange={(e) => {
                                   setFieldValue(
                                     `items[${index}].productID`,
                                     e.target.value
                                   );
                                 }}
-                                isInvalid={
-                                  errors.items &&
-                                  errors.items[index] &&
-                                  errors.items[index].productID
-                                }
-                                color={
-                                  errors.items &&
-                                  errors.items[index] &&
-                                  errors.items[index].productID
-                                }
-                                error={
-                                  errors.items &&
-                                  errors.items[index] &&
-                                  errors.items[index].productID
-                                }
-                                errorMessage={
-                                  errors.items &&
-                                  errors.items[index] &&
-                                  errors.items[index].productID
-                                }
                               >
                                 {(product) => (
                                   <SelectItem key={product?.uniqueId}>
@@ -231,7 +212,7 @@ const CreatePurchaseOrder = () => {
                               <Select
                                 label="Select Unit"
                                 labelPlacement="outside"
-                                // name={`items[${index}].productID`}
+                                name={`items[${index}].unit`}
                                 placeholder="Select Product Unit"
                                 radius="sm"
                                 classNames={{
@@ -249,6 +230,12 @@ const CreatePurchaseOrder = () => {
                                   { uniqueId: "8", name: "can" },
                                 ]}
                                 selectionMode="single"
+                                onChange={(e) => {
+                                  setFieldValue(
+                                    `items[${index}].unit`,
+                                    e.target.value
+                                  );
+                                }}
                               >
                                 {(product) => (
                                   <SelectItem key={product?.uniqueId}>
@@ -257,6 +244,7 @@ const CreatePurchaseOrder = () => {
                                 )}
                               </Select>
                               <Input
+                                name={`items[${index}].noOfProduct`}
                                 label="No's"
                                 labelPlacement="outside"
                                 placeholder="Enter No's"
@@ -266,7 +254,9 @@ const CreatePurchaseOrder = () => {
                                   label: "font-medium text-zinc-800",
                                   inputWrapper: "border shadow-none",
                                 }}
+                                onChange={handleChange}
                                 onBlur={handleBlur}
+                                value={values.items[index].noOfProduct}
                               />
                               <Input
                                 label="Price"
@@ -304,13 +294,11 @@ const CreatePurchaseOrder = () => {
                         colorScheme="badge"
                         onClick={() =>
                           arrayHelpers.push({
-                            vendorID: "",
-                            vendorName: "",
                             productID: "",
-                            productName: "",
                             quantity: "",
-                            incomingDate: null,
-                            expiryDate: null,
+                            price: "",
+                            unit: "",
+                            noOfProduct: "",
                           })
                         }
                       >

@@ -12,13 +12,17 @@ import {
   Textarea,
 } from "@nextui-org/react";
 import { Form, Formik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useLocation } from "react-router-dom";
 import ActionArea from "../../components/layout/ActionArea";
 import FlexContainer from "../../components/layout/FlexContainer";
 import GridContainer from "../../components/layout/GridContainer";
 import NextButton from "../../components/micro/NextButton";
 import Tab from "../../components/micro/Tab";
+import { API_TAGS } from "../../lib/consts/API_TAGS";
+import useGet from "../../lib/hooks/get-api";
+
+const API_URL = import.meta.env.VITE_SERVER_URL;
 
 // Estimate
 //     Hall
@@ -56,6 +60,50 @@ const ManageBookings = () => {
     discountAmount: "",
     discountType: "",
   };
+
+  const {
+    data: foodPlansData,
+    error: foodPlansError,
+    loading: foodPlansLoading,
+    invalidateCache,
+    refresh,
+    getData: getFoodPlansData,
+  } = useGet({ showToast: false });
+
+  const {
+    data: decorationPlansData,
+    error: decorationPlansError,
+    loading: decorationPlansLoading,
+    getData: getDecorationPlansData,
+  } = useGet({ showToast: false });
+
+  const {
+    data: taxItemsData,
+    error: taxItemsError,
+    loading: taxItemsLoading,
+    getData: getTaxItemsData,
+  } = useGet({ showToast: false });
+
+  const handleSubmit = async (values, { setSubmitting }) => {
+    console.log(values);
+  };
+
+  useEffect(() => {
+    getDecorationPlansData(
+      `${API_URL}/banquet/plans/decoration?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      API_TAGS.GET_DECORATION_PLAN
+    );
+
+    getFoodPlansData(
+      `${API_URL}/banquet/plans/food?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      API_TAGS.GET_FOOD_PLAN
+    );
+
+    getTaxItemsData(
+      `${API_URL}/getTaxItems?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      API_TAGS.GET_TAXES
+    );
+  }, []);
   return (
     <FlexContainer variant="column-start" gap="xl">
       <ActionArea
@@ -116,7 +164,7 @@ const ManageBookings = () => {
         </Table>
       )}
       {activeTab === 2 && (
-        <Formik initialValues={initialValues}>
+        <Formik initialValues={initialValues} onSubmit={handleSubmit}>
           {({
             values,
             handleChange,
@@ -176,18 +224,15 @@ const ManageBookings = () => {
                       label: "font-medium text-zinc-900",
                       trigger: "border shadow-none",
                     }}
-                    items={[
-                      { uniqueId: 1, name: "Food 1" },
-                      { uniqueId: 2, name: "Food 2" },
-                      { uniqueId: 3, name: "Food 3" },
-                    ]}
-                    selectedKeys={values.vendorID ? [values.vendorID] : []}
+                    items={foodPlansData || []}
                     onChange={(e) => {
                       setFieldValue(`food`, e.target.value);
                     }}
                   >
                     {(plan) => (
-                      <SelectItem key={plan?.uniqueId}>{plan?.name}</SelectItem>
+                      <SelectItem key={plan?.uniqueId}>
+                        {plan?.planeName}
+                      </SelectItem>
                     )}
                   </Select>
                   <Select
@@ -200,17 +245,15 @@ const ManageBookings = () => {
                       label: "font-medium text-zinc-900",
                       trigger: "border shadow-none",
                     }}
-                    items={[
-                      { uniqueId: 1, name: "Decoration 1" },
-                      { uniqueId: 2, name: "Decoration 2" },
-                      { uniqueId: 3, name: "Decoration 3" },
-                    ]}
+                    items={decorationPlansData || []}
                     onChange={(e) => {
                       setFieldValue(`decoration`, e.target.value);
                     }}
                   >
                     {(plan) => (
-                      <SelectItem key={plan?.uniqueId}>{plan?.name}</SelectItem>
+                      <SelectItem key={plan?.uniqueId}>
+                        {plan?.planeName}
+                      </SelectItem>
                     )}
                   </Select>
 
@@ -233,24 +276,26 @@ const ManageBookings = () => {
                     errorMessage={errors.pax}
                   />
 
-                  <Input
-                    name="taxes"
+                  <Select
+                    label="Select TAX"
                     labelPlacement="outside"
-                    label="Taxes"
+                    name={`taxes`}
+                    placeholder="Select TAX"
                     radius="sm"
                     classNames={{
-                      label: "font-medium text-zinc-800",
-                      inputWrapper: "border shadow-none",
+                      label: "font-medium text-zinc-900",
+                      trigger: "border shadow-none",
                     }}
-                    placeholder="Taxes"
-                    value={values.taxes}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    isInvalid={errors.taxes && touched.taxes}
-                    color={errors.taxes && touched.taxes ? "danger" : ""}
-                    error={errors.taxes && touched.taxes}
-                    errorMessage={errors.taxes}
-                  />
+                    items={taxItemsData?.taxItems || []}
+                    onChange={(e) => {
+                      setFieldValue(`taxes`, e.target.value);
+                    }}
+                  >
+                    {(plan) => (
+                      <SelectItem key={plan?.uniqueId}>{plan?.name}</SelectItem>
+                    )}
+                  </Select>
+
                   <Textarea
                     name="addOns"
                     labelPlacement="outside"
@@ -334,7 +379,7 @@ const ManageBookings = () => {
                   )}
                 </GridContainer>
                 <FlexContainer variant="row-end" gap="md" className={"p-5"}>
-                  <NextButton>Create Booking</NextButton>
+                  <NextButton type="submit">Create Booking</NextButton>
                 </FlexContainer>
               </FlexContainer>
             </Form>

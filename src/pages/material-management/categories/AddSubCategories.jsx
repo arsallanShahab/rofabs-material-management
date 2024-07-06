@@ -1,18 +1,28 @@
 import { Checkbox, Input, Select, SelectItem } from "@nextui-org/react";
 import axios from "axios";
 import { Form, Formik } from "formik";
-import React from "react";
+import React, { useEffect } from "react";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
 import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
+import { API_TAGS } from "../../../lib/consts/API_TAGS";
 import { MAIN_CATEGORES } from "../../../lib/consts/categories";
+import useGet from "../../../lib/hooks/get-api";
 
 const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const AddSubCategories = () => {
+  const {
+    data: mainCategoryData,
+    error: mainCategoryError,
+    loading: mainCategoryLoading,
+    invalidateCache,
+    refresh,
+    getData: getMainCategoryData,
+  } = useGet({ showToast: false });
   const handleAddSubCategory = async (values, { setSubmitting }) => {
     try {
       console.log(values);
@@ -21,14 +31,20 @@ const AddSubCategories = () => {
         mainCategoryId: values.mainCategory,
       });
       const { data } = await res.data;
-      //   invalidateSubCategoriesCache("subCategories");
-      //   refreshSubCategories();
+      invalidateCache(API_TAGS.GET_SUB_CATEGORY);
+      invalidateCache(API_TAGS.GET_MAIN_CATEGORY_SUB_CATEGORY);
       console.log(data);
       toast.success("Sub Category added successfully");
     } catch (error) {
       toast.error("An error occurred");
     }
   };
+  useEffect(() => {
+    getMainCategoryData(
+      `${API_URL}/getMainCategories`,
+      API_TAGS.GET_MAIN_CATEGORY
+    );
+  }, []);
   return (
     <FlexContainer variant="column-start">
       <ActionArea
@@ -71,10 +87,7 @@ const AddSubCategories = () => {
                       label: "font-medium text-zinc-900",
                       trigger: "border shadow-none",
                     }}
-                    items={Object.keys(MAIN_CATEGORES).map((key) => ({
-                      uniqueId: key,
-                      name: MAIN_CATEGORES[key],
-                    }))}
+                    items={mainCategoryData || []}
                     onChange={(e) => {
                       setFieldValue("mainCategory", e.target.value);
                     }}

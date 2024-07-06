@@ -9,13 +9,19 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
+import axios from "axios";
 import { Form, Formik } from "formik";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import { API_TAGS } from "../../../lib/consts/API_TAGS";
+import useGet from "../../../lib/hooks/get-api";
+
+const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const ManageHalls = () => {
   const [activeTab, setActiveTab] = useState(1);
@@ -23,7 +29,8 @@ const ManageHalls = () => {
     setActiveTab(index);
   };
 
-  //    hall name , seating capacity , type of banquet - ac/non ac/garden , facilites provided - ( list of features - washroom , power backup , camp fire, chairs, tabels , dining tables, diace) , suitable for ( marriage , biorthday , get to gether , corporate parties)
+  const { invalidateCache, refresh } = useGet({ showToast: false });
+
   const initialValues = {
     hallName: "",
     seatingCapacity: "",
@@ -34,8 +41,28 @@ const ManageHalls = () => {
   };
 
   const handleSubmit = async (values, { setSubmitting }) => {
-    console.log(values);
+    const hallData = {
+      propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
+      hallName: values.hallName,
+      seatingCapacity: values.seatingCapacity,
+      typeOfBanquet: values.typeOfBanquet,
+      facilitiesProvided: values.facilitiesProvided
+        ?.split(",")
+        .map((item) => item.trim()),
+      suitableFor: values.suitableFor?.split(",").map((item) => item.trim()),
+      rentPerDay: values.rentPerDay,
+    };
+    console.log(hallData);
+    try {
+      const res = await axios.post(`${API_URL}/banquet/halls`, hallData);
+      const { data } = await res.data;
+      toast.success("Hall added successfully");
+      invalidateCache(API_TAGS.GET_HALLS);
+    } catch (error) {
+      toast.error(error?.response?.data?.error || "An error occurred");
+    }
   };
+
   return (
     <FlexContainer variant="column-start" gap="xl" className={"h-full"}>
       <ActionArea

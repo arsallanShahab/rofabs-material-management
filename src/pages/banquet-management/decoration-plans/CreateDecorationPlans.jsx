@@ -1,10 +1,16 @@
 import { Input, Textarea } from "@nextui-org/react";
+import axios from "axios";
 import { FieldArray, Form, Formik } from "formik";
 import React from "react";
+import { toast } from "react-toastify";
 import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
+import { API_TAGS } from "../../../lib/consts/API_TAGS";
+import useGet from "../../../lib/hooks/get-api";
+
+const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const CreateDecorationPlans = () => {
   const initialValues = {
@@ -13,7 +19,26 @@ const CreateDecorationPlans = () => {
     planPrice: "",
   };
 
-  const handleSubmit = async (values, { setSubmitting }) => {};
+  const { invalidateCache, refresh } = useGet({ showToast: false });
+
+  const handleSubmit = async (values, { setSubmitting }) => {
+    console.log(values);
+    const planData = {
+      propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
+      planeName: values.planName,
+      planeDescription: values.planDescription,
+      planPrice: values.planPrice,
+    };
+    try {
+      const res = await axios.post(
+        `${API_URL}/banquet/plans/decoration`,
+        planData
+      );
+      invalidateCache(API_TAGS.GET_DECORATION_PLAN);
+    } catch (error) {
+      toast.error(error?.response?.data?.error || "An error occurred");
+    }
+  };
   return (
     <FlexContainer variant="column-start">
       <ActionArea
@@ -43,6 +68,7 @@ const CreateDecorationPlans = () => {
                   />
 
                   <Input
+                    type="number"
                     name="planPrice"
                     label="Plan Price"
                     labelPlacement="outside"

@@ -2,56 +2,79 @@ import { Checkbox, Input, Select, SelectItem } from "@nextui-org/react";
 import axios from "axios";
 import { FieldArray, Form, Formik } from "formik";
 import { Trash } from "lucide-react";
-import React, { Fragment } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import * as Yup from "yup";
 import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
+import { API_TAGS } from "../../../lib/consts/API_TAGS";
 import { MAIN_CATEGORES } from "../../../lib/consts/categories";
+import useGet from "../../../lib/hooks/get-api";
 
 const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const CreateItems = () => {
-  const [categories, setCategories] = React.useState([]);
+  const [selectedSubCategory, setSelectedSubCategory] = useState([]);
   const initialValuesItems = {
     items: [
       {
         category: "",
         mainCategory: "",
         productName: "",
-        measurementUnit: "",
-        unit: "",
         isActive: true,
       },
     ],
   };
 
+  const {
+    data: mainCategoryData,
+    error: mainCategoryError,
+    loading: mainCategoryLoading,
+    invalidateCache,
+    refresh,
+    getData: getMainCategoryData,
+  } = useGet({ showToast: false });
+
   const handleAddItems = async (values, { resetForm }) => {
+    console.log(values, "values");
+    // return;
     const items = values.items.map((item) => {
       return {
         subCategory: item.category,
         mainCategory: item.mainCategory,
         productName: item.productName,
-        measurementUnit: item.measurementUnit,
-        weight: item.unit,
         status: item.isActive,
       };
     });
-    console.log(items);
     try {
-      const res = await axios.post(`${API_URL}/createItems`, items);
+      const res = await axios.post(`${API_URL}/createMarketItems`, items);
       const { data } = res;
       console.log(data, "created items");
       toast.success("Items created successfully");
-      // invalidateItemsCache("items");
-      // refreshItemsData();
+      invalidateCache(API_TAGS.GET_MARKETPLACE_ITEMS);
+      invalidateCache(API_TAGS.GET_MARKETPLACE_ITEMS_BY_MAIN_CATEGORY);
     } catch (error) {
       toast.error(error?.response?.data?.error || "An error occurred");
     }
     // resetForm();
   };
+
+  useEffect(() => {
+    getMainCategoryData(
+      `${API_URL}/getMainCategories?includeSubCategories=true`,
+      API_TAGS.GET_MAIN_CATEGORY_SUB_CATEGORY
+    );
+    if (mainCategoryData?.length > 0) {
+      const subCategories = mainCategoryData
+        ?.map((category) => {
+          return category?.subCategories;
+        })
+        ?.flat();
+      setSelectedSubCategory(subCategories);
+    }
+  }, []);
 
   return (
     <FlexContainer variant="column-start" gap="xl">
@@ -72,11 +95,6 @@ const CreateItems = () => {
                   "Main Category is required"
                 ),
                 productName: Yup.string().required("Product Name is required"),
-                measurementUnit: Yup.string().required(
-                  "Measurement Unit is required"
-                ),
-                unit: Yup.string().required("Weight is required"),
-                isActive: Yup.string().required("Status is required"),
               })
             ),
           })}
@@ -119,24 +137,20 @@ const CreateItems = () => {
                                     label: "font-medium text-zinc-900",
                                     trigger: "border shadow-none",
                                   }}
-                                  items={Object.keys(MAIN_CATEGORES).map(
-                                    (key) => ({
-                                      uniqueId: key,
-                                      name: MAIN_CATEGORES[key],
-                                    })
-                                  )}
+                                  items={mainCategoryData || []}
                                   onChange={(e) => {
                                     setFieldValue(
                                       `items.${index}.mainCategory`,
                                       e.target.value
                                     );
-                                    // const category = AllCategoriesData.find(
-                                    //   (category) =>
-                                    //     category.uniqueId === e.target.value
-                                    // );
-                                    // setCategories(
-                                    //   category?.subCategories || []
-                                    // );
+
+                                    const category = mainCategoryData?.find(
+                                      (category) =>
+                                        category?.uniqueId === e.target.value
+                                    );
+                                    setSelectedSubCategory(
+                                      category?.subCategories
+                                    );
                                   }}
                                   isInvalid={
                                     errors.items &&
@@ -156,8 +170,8 @@ const CreateItems = () => {
                                   }
                                 >
                                   {(category) => (
-                                    <SelectItem key={category.uniqueId}>
-                                      {category.name}
+                                    <SelectItem key={category?.uniqueId}>
+                                      {category?.name}
                                     </SelectItem>
                                   )}
                                 </Select>
@@ -171,9 +185,7 @@ const CreateItems = () => {
                                     label: "font-medium text-zinc-900",
                                     trigger: "border shadow-none",
                                   }}
-                                  items={[
-                                    { value: "detergent", key: "detergent" },
-                                  ]}
+                                  items={selectedSubCategory || []}
                                   onChange={(e) => {
                                     setFieldValue(
                                       `items.${index}.category`,
@@ -198,8 +210,8 @@ const CreateItems = () => {
                                   }
                                 >
                                   {(category) => (
-                                    <SelectItem key={category?.key}>
-                                      {category?.value}
+                                    <SelectItem key={category?.uniqueId}>
+                                      {category?.name}
                                     </SelectItem>
                                   )}
                                 </Select>

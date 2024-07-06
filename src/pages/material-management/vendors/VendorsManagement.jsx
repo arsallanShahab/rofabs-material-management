@@ -332,7 +332,8 @@ const VendorList = ({ data, isLoading }) => {
         <TableColumn>Email</TableColumn>
         <TableColumn>Phone</TableColumn>
         <TableColumn>Address</TableColumn>
-        <TableColumn className="rounded-r-xl">Vendor Category</TableColumn>
+        <TableColumn>Vendor Categories</TableColumn>
+        <TableColumn className="rounded-r-xl">Vendor Status</TableColumn>
         <TableColumn className="bg-white"></TableColumn>
       </TableHeader>
       <TableBody>
@@ -348,7 +349,16 @@ const VendorList = ({ data, isLoading }) => {
                 <TableCell>{item?.vendorEmail}</TableCell>
                 <TableCell>{item?.vendorPhoneNumber}</TableCell>
                 <TableCell>{item?.vendorAddress}</TableCell>
-                <TableCell>{item?.vendorStatus}</TableCell>
+                <TableCell className="max-w-xs">
+                  {item?.vendorCategories?.map((c) => c?.name)?.join(", ")}
+                </TableCell>
+                <TableCell>
+                  {item?.vendorStatus ? (
+                    <span className="text-green-500 font-medium">Active</span>
+                  ) : (
+                    <span className="text-rose-500 font-medium">In Active</span>
+                  )}
+                </TableCell>
                 <TableCell>
                   <Dropdown>
                     <DropdownTrigger>

@@ -26,6 +26,7 @@ import axios, { AxiosError } from "axios";
 import { Trash } from "lucide-react";
 import { toast } from "react-toastify";
 import Tab from "../../../components/micro/Tab";
+import { API_TAGS } from "../../../lib/consts/API_TAGS";
 import { MAIN_CATEGORES } from "../../../lib/consts/categories";
 import useGet from "../../../lib/hooks/get-api";
 
@@ -206,12 +207,12 @@ const AddVendor = () => {
   const [categories, setCategories] = useState([]);
 
   const {
-    data: AllCategoriesData,
-    error: AllCategoriesError,
-    loading: AllCategoriesLoading,
-    invalidateCache: invalidateAllCategoriesCache,
-    refresh: refreshAllCategories,
-    getData: getAllCategoriesData,
+    data: mainCategoryData,
+    error: mainCategoryError,
+    loading: mainCategoryLoading,
+    invalidateCache,
+    refresh,
+    getData: getMainCategoryData,
   } = useGet({ showToast: false });
 
   const [initialValues, setInitialValues] = useState({
@@ -220,15 +221,18 @@ const AddVendor = () => {
     phone: "",
     address: "",
     vendor_category: "",
+    isSelfVendor: false,
   });
 
   const handleAddVendor = async (values, { resetForm }) => {
+    const v_categories = values?.vendor_category?.split(",");
     const vendor = {
       vendorName: values.name,
       vendorEmail: values.email,
       vendorPhoneNumber: values.phone,
       vendorAddress: values.address,
-      vendorCategory: values.vendor_category,
+      vendorCategories: v_categories,
+      selfVending: values.isSelfVendor,
       vendorStatus: true,
     };
     try {
@@ -237,13 +241,20 @@ const AddVendor = () => {
       console.log(data, "created vendor");
       toast.success("Vendor created successfully");
       // invalidateAllVendorsCache("allVendors");
-      // refreshAllVendorsData();
+      invalidateCache(API_TAGS.GET_VENDORS);
     } catch (error) {
       toast.error(error?.response?.data?.error || "An error occurred");
     }
     console.log(vendor);
     // resetForm();
   };
+
+  useEffect(() => {
+    getMainCategoryData(
+      `${API_URL}/getMainCategories`,
+      API_TAGS.GET_MAIN_CATEGORY
+    );
+  }, []);
 
   return (
     <FlexContainer variant="column-start" gap="xl">
@@ -355,10 +366,8 @@ const AddVendor = () => {
                       label: "font-medium text-zinc-900",
                       trigger: "border shadow-none",
                     }}
-                    items={Object.keys(MAIN_CATEGORES).map((key) => ({
-                      uniqueId: key,
-                      name: MAIN_CATEGORES[key],
-                    }))}
+                    items={mainCategoryData || []}
+                    selectionMode="multiple"
                     onChange={(e) => {
                       setFieldValue("vendor_category", e.target.value);
                     }}
@@ -382,6 +391,11 @@ const AddVendor = () => {
                       </SelectItem>
                     )}
                   </Select>
+                  <Checkbox
+                    onValueChange={(val) => setFieldValue("isSelfVendor", val)}
+                  >
+                    Is it for self vending?
+                  </Checkbox>
                 </GridContainer>
                 <FlexContainer
                   variant="row-end"

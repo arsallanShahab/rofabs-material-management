@@ -7,13 +7,20 @@ import {
   TableHeader,
   TableRow,
 } from "@nextui-org/react";
+import axios from "axios";
 import { Form, Formik } from "formik";
-import React, { useState } from "react";
+import { Trash } from "lucide-react";
+import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import { API_TAGS } from "../../../lib/consts/API_TAGS";
+import useGet from "../../../lib/hooks/get-api";
+
+const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const TaxConfig = () => {
   const [activeTab, setActiveTab] = useState(1);
@@ -29,6 +36,42 @@ const TaxConfig = () => {
     igst: "",
   };
 
+  const {
+    data: taxItemsData,
+    error: taxItemsError,
+    loading: taxItemsLoading,
+    getData: getTaxItemsData,
+    invalidateCache,
+    refresh,
+  } = useGet({ showToast: false });
+
+  const handleSubmit = async (values, { setSubmitting }) => {
+    console.log(values);
+    const taxData = {
+      propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
+      name: values.taxName,
+      CGST: values.cgst,
+      SGST: values.sgst,
+      IGST: values.igst,
+    };
+    try {
+      const res = await axios.post(`${API_URL}/createTaxItem`, taxData);
+      const { data } = await res.data;
+      toast.success("Tax added successfully");
+      invalidateCache(API_TAGS.GET_TAXES);
+      refresh();
+    } catch (error) {
+      toast.error(error?.data?.error || "An error occurred");
+    }
+    setSubmitting(false);
+  };
+
+  useEffect(() => {
+    getTaxItemsData(
+      `${API_URL}/getTaxItems?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      API_TAGS.GET_TAXES
+    );
+  }, []);
   return (
     <FlexContainer variant="column-start" gap="xl">
       <ActionArea
@@ -55,36 +98,54 @@ const TaxConfig = () => {
               <TableColumn>Tax Name</TableColumn>
               <TableColumn>CGST</TableColumn>
               <TableColumn>SGST</TableColumn>
-              <TableColumn>IGST</TableColumn>
+              <TableColumn className="rounded-r-xl">IGST</TableColumn>
+              <TableColumn className="bg-white"></TableColumn>
             </TableHeader>
             <TableBody>
-              {/* {!taxesLoading &&
-                taxesData?.map((tax) => (
+              {!taxItemsLoading &&
+                taxItemsData?.taxItems?.length > 0 &&
+                taxItemsData?.taxItems?.map((tax) => (
                   <TableRow key={tax?.uniqueId}>
-                    <TableCell>{tax?.taxName}</TableCell>
-                    <TableCell>{tax?.cgst}</TableCell>
-                    <TableCell>{tax?.sgst}</TableCell>
-                    <TableCell>{tax?.igst}</TableCell>
+                    <TableCell>{tax?.name}</TableCell>
+                    <TableCell>{tax?.CGST}</TableCell>
+                    <TableCell>{tax?.SGST}</TableCell>
+                    <TableCell>{tax?.IGST}</TableCell>
+                    <TableCell>
+                      <NextButton
+                        colorScheme="flat"
+                        isIcon
+                        onClick={async () => {
+                          if (!tax.uniqueId) {
+                            return toast.error("Item not found");
+                          }
+                          try {
+                            const res = await axios.delete(
+                              `${API_URL}/deleteTaxItem?uniqueId=${tax?.uniqueId}`
+                            );
+                            toast.success(
+                              res?.data?.message || "Item deleted successfully"
+                            );
+                            invalidateCache(API_TAGS.GET_TAXES);
+                            refresh();
+                          } catch (error) {
+                            toast.error(
+                              error?.response?.data?.error ||
+                                "Something went wrong"
+                            );
+                          }
+                        }}
+                      >
+                        <Trash className="w-4 h-4" />
+                      </NextButton>
+                    </TableCell>
                   </TableRow>
-                ))} */}
-              <TableRow>
-                <TableCell>CGST</TableCell>
-                <TableCell>9%</TableCell>
-                <TableCell>9%</TableCell>
-                <TableCell>18%</TableCell>
-              </TableRow>
+                ))}
             </TableBody>
           </Table>
         </FlexContainer>
       )}
       {activeTab === 2 && (
-        <Formik
-          initialValues={initialValues}
-          onSubmit={(values, { setSubmitting }) => {
-            console.log(values);
-            setSubmitting(false);
-          }}
-        >
+        <Formik initialValues={initialValues} onSubmit={handleSubmit}>
           {({ values, handleChange, handleSubmit }) => {
             return (
               <Form>
@@ -94,7 +155,7 @@ const TaxConfig = () => {
                       name="taxName"
                       label="Tax Name"
                       labelPlacement="outside"
-                      placeholder="Quantity"
+                      placeholder="Enter Tax Name"
                       radius="sm"
                       classNames={{
                         label: "font-medium text-zinc-800",
@@ -109,7 +170,7 @@ const TaxConfig = () => {
                       name="cgst"
                       label="CGST"
                       labelPlacement="outside"
-                      placeholder="CGST"
+                      placeholder="Enter CGST"
                       radius="sm"
                       classNames={{
                         label: "font-medium text-zinc-800",
@@ -124,7 +185,7 @@ const TaxConfig = () => {
                       name="igst"
                       label="IGST"
                       labelPlacement="outside"
-                      placeholder="IGST"
+                      placeholder="Enter IGST"
                       radius="sm"
                       classNames={{
                         label: "font-medium text-zinc-800",
@@ -139,7 +200,7 @@ const TaxConfig = () => {
                       name="sgst"
                       label="SGST"
                       labelPlacement="outside"
-                      placeholder="SGST"
+                      placeholder="Enter SGST"
                       radius="sm"
                       classNames={{
                         label: "font-medium text-zinc-800",

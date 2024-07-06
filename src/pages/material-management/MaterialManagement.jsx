@@ -44,7 +44,7 @@ const MaterialManagement = () => {
           <NextButton href={"categories"} colorScheme="secondary">
             Manage Categories
           </NextButton>
-          <NextButton href={"items/create"} colorScheme="secondary">
+          <NextButton href={"items"} colorScheme="secondary">
             Market Management
           </NextButton>
           <NextButton href={"inventory"} colorScheme="secondary">

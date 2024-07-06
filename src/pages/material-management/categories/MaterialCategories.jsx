@@ -22,6 +22,7 @@ import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import { API_TAGS } from "../../../lib/consts/API_TAGS";
 import { MAIN_CATEGORES } from "../../../lib/consts/categories";
 import useGet from "../../../lib/hooks/get-api";
 
@@ -55,51 +56,24 @@ const MaterialCategories = () => {
     2: false,
   });
 
-  const [categories, setCategories] = useState([
-    // dairy products, fruits, vegetables, etc
-    { id: 1, category: "Dairy Products" },
-    { id: 2, category: "Fruits" },
-    { id: 3, category: "Vegetables" },
-    { id: 4, category: "Meat" },
-    { id: 5, category: "Poultry" },
-    { id: 6, category: "Seafood" },
-    { id: 7, category: "Grains" },
-    { id: 8, category: "Beverages" },
-    { id: 9, category: "Canned Goods" },
-    { id: 10, category: "Frozen Foods" },
-    { id: 11, category: "Bakery" },
-    { id: 12, category: "Snacks" },
-    { id: 13, category: "Confectionery" },
-    { id: 14, category: "Condiments" },
-    { id: 15, category: "Spices" },
-    { id: 16, category: "Sauces" },
-    { id: 17, category: "Oils" },
-    { id: 18, category: "Dressings" },
-    { id: 19, category: "Desserts" },
-  ]);
+  const [selectedMainCategory, setSelectedMainCategory] = useState("");
 
   const {
-    data: mainCategoriesData,
-    error: mainCategoriesError,
-    loading: mainCategoriesLoading,
-    invalidateCache: invalidateMainCategoriesCache,
-    refresh: refreshMainCategories,
-    getData: getMainCategoriesData,
+    data: mainCategoryData,
+    error: mainCategoryError,
+    loading: mainCategoryLoading,
+    invalidateCache,
+    refresh,
+    getData: getMainCategoryData,
   } = useGet({ showToast: false });
 
   const {
     data: subCategoriesData,
     error: subCategoriesError,
     loading: subCategoriesLoading,
-    invalidateCache: invalidateSubCategoriesCache,
-    refresh: refreshSubCategories,
     getData: getSubCategoriesData,
+    refresh: refreshSubCategories,
   } = useGet({ showToast: false });
-
-  useEffect(() => {
-    getSubCategoriesData(`${API_URL}/getSubCategories`, "subCategories");
-    getMainCategoriesData(`${API_URL}/getMinCategories`, "mainCategories");
-  }, []);
 
   const handleTabClick = (index) => {
     setActiveTab(index);
@@ -114,13 +88,28 @@ const MaterialCategories = () => {
       });
       const data = await res.data;
       console.log(data, "data");
-      invalidateMainCategoriesCache("mainCategories");
-      refreshMainCategories();
       toast.success("Main Category added successfully");
     } catch (error) {
       toast.error("An error occurred");
     }
   };
+
+  useEffect(() => {
+    getSubCategoriesData(
+      `${API_URL}/getSubCategories?includeMainCategory=true&mainCategoryId=${selectedMainCategory}`,
+      selectedMainCategory.length > 0
+        ? API_TAGS.GET_SUB_CATEGORY_BY_MAIN_CATEGORY
+        : API_TAGS.GET_SUB_CATEGORY
+    );
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMainCategory]);
+
+  useEffect(() => {
+    getMainCategoryData(
+      `${API_URL}/getMainCategories`,
+      API_TAGS.GET_MAIN_CATEGORY
+    );
+  }, []);
 
   return (
     <FlexContainer variant="column-start" gap="xl" className={"h-full"}>
@@ -137,16 +126,23 @@ const MaterialCategories = () => {
         <div>
           <Select
             name="mainCategory"
+            label="Main Categories"
             placeholder="Select Main Category"
             radius="sm"
             classNames={{
               label: "font-medium text-zinc-900",
               trigger: "border shadow-none w-64",
             }}
-            items={Object.keys(MAIN_CATEGORES).map((key) => ({
-              uniqueId: key,
-              name: MAIN_CATEGORES[key],
-            }))}
+            items={mainCategoryData || []}
+            onChange={(e) => {
+              setSelectedMainCategory(e.target.value);
+              if (e?.target?.value?.length > 0) {
+                refreshSubCategories();
+                e.target.hidePopover();
+              }
+            }}
+            selectionMode="single"
+            selectedKeys={selectedMainCategory ? [selectedMainCategory] : []}
           >
             {(item) => (
               <SelectItem key={item?.uniqueId}>{item?.name}</SelectItem>
@@ -196,7 +192,6 @@ const MaterialCategories = () => {
                             res?.data?.message ||
                               "Sub Category deleted successfully"
                           );
-                          invalidateSubCategoriesCache("subCategories");
                           refreshSubCategories();
                         } catch (error) {
                           toast.error(
