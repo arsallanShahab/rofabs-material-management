@@ -266,7 +266,7 @@ const AddVendor = () => {
       />
       <Formik
         initialValues={initialValues}
-        validationSchema={AddVendorsValidation}
+        // validationSchema={AddVendorsValidation}
         onSubmit={handleAddVendor}
       >
         {({
@@ -293,12 +293,10 @@ const AddVendor = () => {
                       label: "font-medium text-zinc-100",
                       inputWrapper: "border shadow-none",
                     }}
+                    value={values.name}
                     onChange={(e) => {
                       setFieldValue("name", e.target.value);
                     }}
-                    isInvalid={errors.name && touched.name}
-                    color={errors.name && touched.name && "danger"}
-                    errorMessage={errors.name && touched.name && errors.name}
                   />
                   <Input
                     type="email"
@@ -311,6 +309,7 @@ const AddVendor = () => {
                       label: "font-medium text-zinc-100",
                       inputWrapper: "border shadow-none",
                     }}
+                    value={values.email}
                     onChange={(e) => {
                       setFieldValue("email", e.target.value);
                     }}
@@ -329,6 +328,7 @@ const AddVendor = () => {
                       label: "font-medium text-zinc-100",
                       inputWrapper: "border shadow-none",
                     }}
+                    value={values.phone}
                     onChange={(e) => {
                       setFieldValue("phone", e.target.value);
                     }}
@@ -347,6 +347,7 @@ const AddVendor = () => {
                       label: "font-medium text-zinc-100",
                       inputWrapper: "border shadow-none",
                     }}
+                    value={values.address}
                     onChange={(e) => {
                       setFieldValue("address", e.target.value);
                     }}
@@ -392,7 +393,15 @@ const AddVendor = () => {
                     )}
                   </Select>
                   <Checkbox
-                    onValueChange={(val) => setFieldValue("isSelfVendor", val)}
+                    onValueChange={(val) => {
+                      setFieldValue("isSelfVendor", val);
+                      if (val) {
+                        setFieldValue("name", "Self Vendor");
+                        setFieldValue("email", "self@gmail");
+                        setFieldValue("phone", "0000000000");
+                        setFieldValue("address", "Self Address");
+                      }
+                    }}
                   >
                     Is it for self vending?
                   </Checkbox>

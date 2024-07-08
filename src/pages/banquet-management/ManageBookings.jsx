@@ -11,9 +11,11 @@ import {
   TableRow,
   Textarea,
 } from "@nextui-org/react";
+import axios from "axios";
 import { Form, Formik } from "formik";
 import React, { useEffect, useState } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useSearchParams } from "react-router-dom";
+import { toast } from "react-toastify";
 import ActionArea from "../../components/layout/ActionArea";
 import FlexContainer from "../../components/layout/FlexContainer";
 import GridContainer from "../../components/layout/GridContainer";
@@ -24,43 +26,44 @@ import useGet from "../../lib/hooks/get-api";
 
 const API_URL = import.meta.env.VITE_SERVER_URL;
 
-// Estimate
-//     Hall
-//     Food ( per plate)
-//     No Of PAX
-//     Decoration
-//      Misc
-//      Taxes
-
-// Bill also same as estimate , but put a add charges button
-//  It will open option to add some charges
-
-//       Damages
-//       Extra charges
-//        Reason for extra charges
-
 const ManageBookings = () => {
   const [activeTab, setActiveTab] = useState(1);
 
   const handleTabClick = (tab) => {
     setActiveTab(tab);
   };
+
+  const [params, setParams] = useSearchParams();
+  useEffect(() => {
+    if (params.get("tab")) {
+      setActiveTab(Number(params.get("tab")));
+    }
+  }, [params]);
   const location = useLocation();
   const id = location.state;
   const initialValues = {
     bookerName: "",
+    bookerPhoneNumber: "",
     noOfPax: "",
     foodPlan: "",
     decorationPlan: "",
     addOns: "",
     addOnsCost: "",
     complimentary: "",
-    priceQuoted: "",
+    // priceQuoted: "",
     isDiscounted: "",
     discountAmount: "",
     discountType: "",
+    bookingStartDate: "",
+    bookingEndDate: "",
   };
 
+  const {
+    data: bookingsData,
+    error: getBookingsError,
+    loading: getBookingsLoading,
+    getData: getBookingsData,
+  } = useGet({ showToast: false });
   const {
     data: foodPlansData,
     error: foodPlansError,
@@ -84,11 +87,60 @@ const ManageBookings = () => {
     getData: getTaxItemsData,
   } = useGet({ showToast: false });
 
+  const {
+    data: hallsData,
+    error: hallsError,
+    loading: hallsLoading,
+    getData: getHallsData,
+  } = useGet({ showToast: false });
+
   const handleSubmit = async (values, { setSubmitting }) => {
     console.log(values);
+    const fp = foodPlansData.find((item) => item.uniqueId === values.foodPlan);
+    const dp = decorationPlansData.find(
+      (item) => item?.uniqueId === values.decorationPlan
+    );
+    const sh = hallsData.find((item) => item?.uniqueId === values.hall);
+    const priceQuoted =
+      parseInt(fp?.planPrice) +
+      parseInt(dp?.planPrice) +
+      parseInt(sh?.rentPerDay) +
+      parseInt(values.addOnsCost);
+    const bsd = new Date(values.bookingStartDate).toISOString();
+    const bed = new Date(values.bookingEndDate).toISOString();
+    console.log(priceQuoted, "priceQuoted");
+    const bookingData = {
+      propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
+      bookerName: values?.bookerName,
+      bookerPhoneNumber: values?.bookerPhoneNumber,
+      selectedHall: values?.hall,
+      selectedFoodPlan: values?.foodPlan,
+      selectedDecorationPlan: values?.decorationPlan,
+      pax: values?.noOfPax,
+      taxes: values?.taxes,
+      addOns: values?.addOns,
+      addOnsCost: values?.addOnsCost,
+      discounts: values?.isDiscounted,
+      discountAmount: values?.discountAmount,
+      discountType: values?.discountType,
+      totalCost: priceQuoted,
+      bookingDateAndTime: bsd,
+      bookingEndDateAndTime: bed,
+    };
+    console.log(bookingData, "bookingData");
+    try {
+      const res = await axios.post(`${API_URL}/banquet/booking`, bookingData);
+      toast.success("Booking Created Successfully");
+      invalidateCache(API_TAGS.GET_BOOKINGS);
+    } catch (error) {
+      toast?.error(error?.response?.data?.error || "An Error Occured");
+    }
   };
 
   useEffect(() => {
+    getBookingsData(
+      `${API_URL}/banquet/booking?propertyId=2a869149-342b-44c8-ad86-8f6465970638`
+    );
     getDecorationPlansData(
       `${API_URL}/banquet/plans/decoration?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
       API_TAGS.GET_DECORATION_PLAN
@@ -103,6 +155,10 @@ const ManageBookings = () => {
       `${API_URL}/getTaxItems?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
       API_TAGS.GET_TAXES
     );
+    getHallsData(
+      `${API_URL}/banquet/halls?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      API_TAGS.GET_HALLS
+    );
   }, []);
   return (
     <FlexContainer variant="column-start" gap="xl">
@@ -116,12 +172,18 @@ const ManageBookings = () => {
         <Tab
           title="Bookings List"
           isActiveTab={activeTab === 1}
-          onClick={() => handleTabClick(1)}
+          onClick={() => {
+            handleTabClick(1);
+            setParams({ tab: 1 });
+          }}
         />
         <Tab
           title="Create Booking"
           isActiveTab={activeTab === 2}
-          onClick={() => handleTabClick(2)}
+          onClick={() => {
+            handleTabClick(2);
+            setParams({ tab: 2 });
+          }}
         />
       </FlexContainer>
       {activeTab === 1 && (
@@ -132,15 +194,32 @@ const ManageBookings = () => {
             <TableColumn>Food Plan</TableColumn>
             <TableColumn>Decoration Plan</TableColumn>
             <TableColumn>PAX</TableColumn>
-            <TableColumn>Taxes</TableColumn>
+            {/* <TableColumn>Taxes</TableColumn> */}
             <TableColumn>Add Ons</TableColumn>
             <TableColumn>Add Ons Cost</TableColumn>
-            <TableColumn>Discount</TableColumn>
             <TableColumn>Discount Amount</TableColumn>
-            <TableColumn>Discount Type</TableColumn>
+            <TableColumn>Total Cost</TableColumn>
           </TableHeader>
           <TableBody>
-            <TableRow>
+            {!getBookingsLoading &&
+              bookingsData?.length > 0 &&
+              bookingsData?.map((item) => (
+                <TableRow key={item?.id}>
+                  <TableCell>{item?.bookerName}</TableCell>
+                  <TableCell>{item?.selectedHall?.hallName}</TableCell>
+                  <TableCell>{item?.selectedFoodPlan?.planeName}</TableCell>
+                  <TableCell>
+                    {item?.selectedDecorationPlan?.planeName}
+                  </TableCell>
+                  <TableCell>{item?.pax}</TableCell>
+                  {/* <TableCell>{item?.taxes}</TableCell> */}
+                  <TableCell>{item?.addOns}</TableCell>
+                  <TableCell>{item?.addOnsCost}</TableCell>
+                  <TableCell>{item?.discountAmount}</TableCell>
+                  <TableCell>{item?.totalCost}</TableCell>
+                </TableRow>
+              ))}
+            {/* <TableRow>
               <TableCell>ABC Hall</TableCell>
               <TableCell>100</TableCell>
               <TableCell>AC</TableCell>
@@ -159,7 +238,7 @@ const ManageBookings = () => {
               <TableCell>Yes</TableCell>
               <TableCell>10000</TableCell>
               <TableCell>Flat</TableCell>
-            </TableRow>
+            </TableRow> */}
           </TableBody>
         </Table>
       )}
@@ -190,6 +269,20 @@ const ManageBookings = () => {
                     onChange={handleChange}
                     onBlur={handleBlur}
                   />
+                  <Input
+                    name="bookerPhoneNumber"
+                    labelPlacement="outside"
+                    label="Booker Phone Number"
+                    radius="sm"
+                    classNames={{
+                      label: "font-medium text-zinc-800",
+                      inputWrapper: "border shadow-none",
+                    }}
+                    placeholder="Booker Name"
+                    value={values.bookerPhoneNumber}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
                   <Select
                     label="Select Hall"
                     labelPlacement="outside"
@@ -200,65 +293,20 @@ const ManageBookings = () => {
                       label: "font-medium text-zinc-900",
                       trigger: "border shadow-none",
                     }}
-                    items={[
-                      { uniqueId: 1, name: "Hall 1" },
-                      { uniqueId: 2, name: "Hall 2" },
-                      { uniqueId: 3, name: "Hall 3" },
-                    ]}
-                    selectedKeys={values.vendorID ? [values.vendorID] : []}
+                    items={hallsData || []}
+                    selectedKeys={values.hall ? [values.hall] : []}
                     onChange={(e) => {
                       setFieldValue(`hall`, e.target.value);
                     }}
                   >
                     {(hall) => (
-                      <SelectItem key={hall?.uniqueId}>{hall?.name}</SelectItem>
-                    )}
-                  </Select>
-                  <Select
-                    label="Select Food Plan"
-                    labelPlacement="outside"
-                    name={`food`}
-                    placeholder="Select Food Plan"
-                    radius="sm"
-                    classNames={{
-                      label: "font-medium text-zinc-900",
-                      trigger: "border shadow-none",
-                    }}
-                    items={foodPlansData || []}
-                    onChange={(e) => {
-                      setFieldValue(`food`, e.target.value);
-                    }}
-                  >
-                    {(plan) => (
-                      <SelectItem key={plan?.uniqueId}>
-                        {plan?.planeName}
+                      <SelectItem key={hall?.uniqueId}>
+                        {hall?.hallName}
                       </SelectItem>
                     )}
                   </Select>
-                  <Select
-                    label="Select Decoration Plan"
-                    labelPlacement="outside"
-                    name={`decoration`}
-                    placeholder="Select Decoration Plan"
-                    radius="sm"
-                    classNames={{
-                      label: "font-medium text-zinc-900",
-                      trigger: "border shadow-none",
-                    }}
-                    items={decorationPlansData || []}
-                    onChange={(e) => {
-                      setFieldValue(`decoration`, e.target.value);
-                    }}
-                  >
-                    {(plan) => (
-                      <SelectItem key={plan?.uniqueId}>
-                        {plan?.planeName}
-                      </SelectItem>
-                    )}
-                  </Select>
-
                   <Input
-                    name="pax"
+                    name="noOfPax"
                     labelPlacement="outside"
                     label="PAX"
                     radius="sm"
@@ -266,14 +314,10 @@ const ManageBookings = () => {
                       label: "font-medium text-zinc-800",
                       inputWrapper: "border shadow-none",
                     }}
-                    placeholder="PAX"
-                    value={values.pax}
+                    placeholder="Enter PAX"
+                    value={values.noOfPax}
                     onChange={handleChange}
                     onBlur={handleBlur}
-                    isInvalid={errors.pax && touched.pax}
-                    color={errors.pax && touched.pax ? "danger" : ""}
-                    error={errors.pax && touched.pax}
-                    errorMessage={errors.pax}
                   />
 
                   <Select
@@ -295,36 +339,53 @@ const ManageBookings = () => {
                       <SelectItem key={plan?.uniqueId}>{plan?.name}</SelectItem>
                     )}
                   </Select>
-
-                  <Textarea
-                    name="addOns"
-                    labelPlacement="outside"
-                    label="Add Ons"
-                    radius="sm"
-                    classNames={{
-                      label: "font-medium text-zinc-800",
-                      inputWrapper: "border shadow-none",
-                    }}
-                    placeholder="Enter Add Ons"
-                    value={values.addOns}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                  <Input
-                    name="addOnsCost"
-                    labelPlacement="outside"
-                    label="Add Ons Cost"
-                    radius="sm"
-                    classNames={{
-                      label: "font-medium text-zinc-800",
-                      inputWrapper: "border shadow-none",
-                    }}
-                    placeholder="Enter Add Ons Cost"
-                    value={values.addOnsCost}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
                 </GridContainer>
+                <h3 className="text-lg font-semibold">Plan Details</h3>
+                <GridContainer>
+                  <Select
+                    label="Select Food Plan"
+                    labelPlacement="outside"
+                    name={`foodPlan`}
+                    placeholder="Select Food Plan"
+                    radius="sm"
+                    classNames={{
+                      label: "font-medium text-zinc-900",
+                      trigger: "border shadow-none",
+                    }}
+                    items={foodPlansData || []}
+                    onChange={(e) => {
+                      setFieldValue(`foodPlan`, e.target.value);
+                    }}
+                  >
+                    {(plan) => (
+                      <SelectItem key={plan?.uniqueId}>
+                        {plan?.planeName}
+                      </SelectItem>
+                    )}
+                  </Select>
+                  <Select
+                    label="Select Decoration Plan"
+                    labelPlacement="outside"
+                    name={`decorationPlan`}
+                    placeholder="Select Decoration Plan"
+                    radius="sm"
+                    classNames={{
+                      label: "font-medium text-zinc-900",
+                      trigger: "border shadow-none",
+                    }}
+                    items={decorationPlansData || []}
+                    onChange={(e) => {
+                      setFieldValue(`decorationPlan`, e.target.value);
+                    }}
+                  >
+                    {(plan) => (
+                      <SelectItem key={plan?.uniqueId}>
+                        {plan?.planeName}
+                      </SelectItem>
+                    )}
+                  </Select>
+                </GridContainer>
+                <h3 className="text-lg font-semibold">Discount Details</h3>
                 <GridContainer>
                   <Checkbox
                     value={values.isDiscounted}
@@ -359,8 +420,8 @@ const ManageBookings = () => {
                           trigger: "border shadow-none",
                         }}
                         items={[
-                          { uniqueId: 1, name: "Percentage" },
-                          { uniqueId: 2, name: "Amount" },
+                          { uniqueId: "percentage", name: "Percentage" },
+                          { uniqueId: "flat", name: "Flat" },
                         ]}
                         selectedKeys={
                           values.discountType ? [values.discountType] : []
@@ -378,8 +439,74 @@ const ManageBookings = () => {
                     </>
                   )}
                 </GridContainer>
+                <h3 className="text-lg font-semibold">Add Ons Details</h3>
+                <GridContainer>
+                  <Textarea
+                    name="addOns"
+                    labelPlacement="outside"
+                    label="Add Ons"
+                    radius="sm"
+                    classNames={{
+                      label: "font-medium text-zinc-800",
+                      inputWrapper: "border shadow-none",
+                    }}
+                    placeholder="Enter Add Ons"
+                    value={values.addOns}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                  <Input
+                    name="addOnsCost"
+                    labelPlacement="outside"
+                    label="Add Ons Cost"
+                    radius="sm"
+                    classNames={{
+                      label: "font-medium text-zinc-800",
+                      inputWrapper: "border shadow-none",
+                    }}
+                    placeholder="Enter Add Ons Cost"
+                    value={values.addOnsCost}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                </GridContainer>
+                <h3 className="text-lg font-semibold">Booking Dates</h3>
+                <GridContainer>
+                  <Input
+                    type="date"
+                    name="bookingStartDate"
+                    labelPlacement="outside"
+                    label="Booking Start Date"
+                    radius="sm"
+                    classNames={{
+                      label: "font-medium text-zinc-800",
+                      inputWrapper: "border shadow-none",
+                    }}
+                    placeholder="Enter Booking Start Date"
+                    value={values.bookingStartDate}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                  <Input
+                    type="date"
+                    name="bookingEndDate"
+                    labelPlacement="outside"
+                    label="Booking End Date"
+                    radius="sm"
+                    classNames={{
+                      label: "font-medium text-zinc-800",
+                      inputWrapper: "border shadow-none",
+                    }}
+                    placeholder="Enter Booking Start Date"
+                    value={values.bookingEndDate}
+                    onChange={handleChange}
+                    onBlur={handleBlur}
+                  />
+                </GridContainer>
                 <FlexContainer variant="row-end" gap="md" className={"p-5"}>
-                  <NextButton type="submit">Create Booking</NextButton>
+                  <NextButton type="submit" colorScheme="primary">
+                    Create Booking
+                  </NextButton>
                 </FlexContainer>
               </FlexContainer>
             </Form>

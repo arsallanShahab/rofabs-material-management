@@ -1,4 +1,10 @@
-import { Input, Select, SelectItem } from "@nextui-org/react";
+import {
+  Autocomplete,
+  AutocompleteItem,
+  Input,
+  Select,
+  SelectItem,
+} from "@nextui-org/react";
 import axios from "axios";
 import dayjs from "dayjs";
 import { FieldArray, Form, Formik } from "formik";
@@ -69,18 +75,21 @@ const CreatePurchaseOrder = () => {
         noOfProducts: item.noOfProduct,
         vendorId: values.vendorID,
         incomingDate: incomingDate,
+        price: item.price,
         // expiryDate: new Date(item.expiryDate).toISOString(),
       };
     });
     console.log(itemsData);
 
     try {
-      const res = await axios.post(`${API_URL}/createInventory`, {
+      const res = await axios.post(`${API_URL}/purchase`, {
         propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
         items: itemsData,
       });
-      toast.success(res?.data?.message || "Inventory added successfully");
-      //   invalidateInventoryCache("inventory");
+      toast.success(
+        res?.data?.message || "Purchase order created successfully"
+      );
+      invalidateCache(API_TAGS.GET_PURCHASE_ORDERS);
       //   refreshInventoryData();
     } catch (error) {
       toast.error(error?.response?.data?.error || "An error occurred");
@@ -134,7 +143,31 @@ const CreatePurchaseOrder = () => {
                         }}
                         onBlur={handleBlur}
                       />
-                      <Select
+                      <Autocomplete
+                        label="Select Vendor"
+                        labelPlacement="outside"
+                        // variant="bordered"
+                        name={`vendorID`}
+                        defaultItems={allVendorsData || []}
+                        placeholder="Search a vendor"
+                        // className="max-w-xs"
+                        // selectedKey={value}
+                        // onSelectionChange={setValue}
+
+                        // onChange={(e) => {
+                        //   setFieldValue(`vendorID`, e.target.value);
+                        // }}
+                        onSelectionChange={(val) => {
+                          setFieldValue(`vendorID`, val);
+                        }}
+                      >
+                        {(item) => (
+                          <AutocompleteItem key={item?.uniqueId}>
+                            {item?.vendorName}
+                          </AutocompleteItem>
+                        )}
+                      </Autocomplete>
+                      {/* <Select
                         label="Select Vendor"
                         labelPlacement="outside"
                         name={`vendorID`}
@@ -155,7 +188,7 @@ const CreatePurchaseOrder = () => {
                             {vendor?.vendorName}
                           </SelectItem>
                         )}
-                      </Select>
+                      </Select> */}
                     </GridContainer>
                     {values?.items?.length > 0 &&
                       values.items.map((item, index) => {
@@ -170,7 +203,37 @@ const CreatePurchaseOrder = () => {
                               key={index}
                               className="md:grid-cols-4 lg:grid-cols-6"
                             >
-                              <Select
+                              <Autocomplete
+                                label="Select Product"
+                                labelPlacement="outside"
+                                // variant="bordered"
+                                name={`items[${index}].productID`}
+                                defaultItems={marketPlaceItemsData || []}
+                                placeholder="Search an animal"
+                                // className="max-w-xs"
+                                // selectedKey={value}
+                                // onSelectionChange={setValue}
+
+                                onChange={(e) => {
+                                  setFieldValue(
+                                    `items[${index}].productID`,
+                                    e.target.value
+                                  );
+                                }}
+                                onSelectionChange={(val) => {
+                                  setFieldValue(
+                                    `items[${index}].productID`,
+                                    val
+                                  );
+                                }}
+                              >
+                                {(item) => (
+                                  <AutocompleteItem key={item?.uniqueId}>
+                                    {item.productName}
+                                  </AutocompleteItem>
+                                )}
+                              </Autocomplete>
+                              {/* <Select
                                 label="Select Product"
                                 labelPlacement="outside"
                                 name={`items[${index}].productID`}
@@ -193,7 +256,7 @@ const CreatePurchaseOrder = () => {
                                     {product?.productName}
                                   </SelectItem>
                                 )}
-                              </Select>
+                              </Select> */}
                               <Input
                                 label="Quantity"
                                 labelPlacement="outside"
@@ -210,15 +273,17 @@ const CreatePurchaseOrder = () => {
                                 value={values.items[index].quantity}
                               />
                               <Select
-                                label="Select Unit"
+                                label="Measurements"
                                 labelPlacement="outside"
                                 name={`items[${index}].unit`}
-                                placeholder="Select Product Unit"
+                                placeholder="Kg / Gm / mg / ltr / ml / boxes / bottles / can"
                                 radius="sm"
                                 classNames={{
                                   label: "font-medium text-zinc-900",
                                   trigger: "border shadow-none",
                                 }}
+                                showScrollIndicators={true}
+                                scrollShadowProps={{ hideScrollBar: false }}
                                 items={[
                                   { uniqueId: "1", name: "Kg" },
                                   { uniqueId: "2", name: "Gm" },
@@ -238,16 +303,16 @@ const CreatePurchaseOrder = () => {
                                 }}
                               >
                                 {(product) => (
-                                  <SelectItem key={product?.uniqueId}>
+                                  <SelectItem key={product?.name}>
                                     {product?.name}
                                   </SelectItem>
                                 )}
                               </Select>
                               <Input
                                 name={`items[${index}].noOfProduct`}
-                                label="No's"
+                                label="Units"
                                 labelPlacement="outside"
-                                placeholder="Enter No's"
+                                placeholder="Enter No of units"
                                 type="number"
                                 radius="sm"
                                 classNames={{
@@ -259,11 +324,11 @@ const CreatePurchaseOrder = () => {
                                 value={values.items[index].noOfProduct}
                               />
                               <Input
-                                label="Price"
+                                label="Price per unit"
                                 labelPlacement="outside"
                                 name={`items[${index}].price`}
                                 type="number"
-                                placeholder="Enter Price"
+                                placeholder="Enter Price per 1 unit"
                                 radius="sm"
                                 classNames={{
                                   label: "font-medium text-zinc-900",

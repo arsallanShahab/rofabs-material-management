@@ -11,6 +11,7 @@ import {
 } from "@nextui-org/react";
 import axios from "axios";
 import { Form, Formik } from "formik";
+import { Trash } from "lucide-react";
 import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import ActionArea from "../../../components/layout/ActionArea";
@@ -40,6 +41,34 @@ const ManageHalls = () => {
     rentPerDay: "",
   };
 
+  const {
+    data: suitableListData,
+    error: suitableListError,
+    loading: suitableListLoading,
+    getData: getSuitableListData,
+  } = useGet({ showToast: false });
+
+  const {
+    data: facilitiesListData,
+    error: facilitiesListError,
+    loading: facilitiesListLoading,
+    getData: getFacilitiesListData,
+  } = useGet({ showToast: false });
+
+  const {
+    data: banquetTypeListData,
+    error: banquetTypeError,
+    loading: banquetTypeLoading,
+    getData: getBanquetTypeListData,
+  } = useGet({ showToast: false });
+
+  const {
+    data: hallsData,
+    error: hallsError,
+    loading: hallsLoading,
+    getData: getHallsData,
+  } = useGet({ showToast: false });
+
   const handleSubmit = async (values, { setSubmitting }) => {
     const hallData = {
       propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
@@ -62,6 +91,25 @@ const ManageHalls = () => {
       toast.error(error?.response?.data?.error || "An error occurred");
     }
   };
+
+  useEffect(() => {
+    getSuitableListData(
+      `${API_URL}/banquet/configuration/suitable?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      API_TAGS.GET_SUITABLE_LIST
+    );
+    getFacilitiesListData(
+      `${API_URL}/banquet/configuration/facilities?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      API_TAGS.GET_FACILITIES_LIST
+    );
+    getBanquetTypeListData(
+      `${API_URL}/banquet/configuration/types?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      API_TAGS.GET_BANQUET_TYPE_LIST
+    );
+    getHallsData(
+      `${API_URL}/banquet/halls?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      API_TAGS.GET_HALLS
+    );
+  }, []);
 
   return (
     <FlexContainer variant="column-start" gap="xl" className={"h-full"}>
@@ -91,21 +139,52 @@ const ManageHalls = () => {
             <TableColumn>Facilities Provided</TableColumn>
             <TableColumn>Suitable For</TableColumn>
             <TableColumn>Rent Per Day</TableColumn>
+            <TableColumn className="bg-white"></TableColumn>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell>ABC Hall</TableCell>
-              <TableCell>100</TableCell>
-              <TableCell>AC</TableCell>
-              <TableCell className="max-w-xs">
-                Washroom, Power Backup, Camp Fire, Chairs, Tables, Dining
-                Tables, Dias
-              </TableCell>
-              <TableCell className="max-w-xs">
-                Marriage, Birthday, Get Together, Corporate Parties
-              </TableCell>
-              <TableCell>10000</TableCell>
-            </TableRow>
+            {!hallsLoading &&
+              hallsData?.length > 0 &&
+              hallsData?.map((item, index) => (
+                <TableRow key={index}>
+                  <TableCell>{item?.hallName}</TableCell>
+                  <TableCell>{item?.seatingCapacity}</TableCell>
+                  <TableCell>{item?.typeOfBanquet?.name}</TableCell>
+                  <TableCell className="max-w-xs">
+                    {item?.facilitiesProvided?.map((i) => i?.name)?.join(", ")}
+                  </TableCell>
+                  <TableCell className="max-w-xs">
+                    {item?.suitableFor?.map((i) => i?.name)?.join(", ")}
+                  </TableCell>
+                  <TableCell>{item?.rentPerDay}</TableCell>
+                  <TableCell>
+                    <NextButton
+                      colorScheme="flat"
+                      onClick={async () => {
+                        try {
+                          if (!item.uniqueId) {
+                            return toast.error("Item not found");
+                          }
+                          const res = await axios.delete(
+                            `${API_URL}/banquet/halls?uniqueId=${item?.uniqueId}`
+                          );
+                          toast.success(
+                            res?.data?.message || "Item deleted successfully"
+                          );
+                          invalidateCache(API_TAGS.GET_HALLS);
+                          refresh();
+                        } catch (error) {
+                          toast.error(
+                            error?.response?.data?.error ||
+                              "Something went wrong"
+                          );
+                        }
+                      }}
+                    >
+                      <Trash className="w-4 h-4" /> Delete
+                    </NextButton>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       )}
@@ -137,6 +216,7 @@ const ManageHalls = () => {
                     onBlur={handleBlur}
                   />
                   <Input
+                    type="number"
                     name="seatingCapacity"
                     label="Seating Capacity"
                     labelPlacement="outside"
@@ -156,11 +236,7 @@ const ManageHalls = () => {
                     labelPlacement="outside"
                     placeholder="Select Type of Banquet"
                     radius="sm"
-                    items={[
-                      { uniqueId: 1, name: "AC" },
-                      { uniqueId: 2, name: "Non-AC" },
-                      { uniqueId: 3, name: "Garden" },
-                    ]}
+                    items={banquetTypeListData || []}
                     classNames={{
                       label: "font-medium text-zinc-100",
                       inputWrapper: "border shadow-none",
@@ -186,15 +262,7 @@ const ManageHalls = () => {
                     labelPlacement="outside"
                     placeholder="Select Facilities Provided"
                     radius="sm"
-                    items={[
-                      { uniqueId: 1, name: "Washroom" },
-                      { uniqueId: 2, name: "Power Backup" },
-                      { uniqueId: 3, name: "Camp Fire" },
-                      { uniqueId: 4, name: "Chairs" },
-                      { uniqueId: 5, name: "Tables" },
-                      { uniqueId: 6, name: "Dining Tables" },
-                      { uniqueId: 7, name: "Dias" },
-                    ]}
+                    items={facilitiesListData || []}
                     selectionMode="multiple"
                     classNames={{
                       label: "font-medium text-zinc-100",
@@ -225,12 +293,7 @@ const ManageHalls = () => {
                     labelPlacement="outside"
                     placeholder="Select Suitable For"
                     radius="sm"
-                    items={[
-                      { uniqueId: 1, name: "Marriage" },
-                      { uniqueId: 2, name: "Birthday" },
-                      { uniqueId: 3, name: "Get Together" },
-                      { uniqueId: 4, name: "Corporate Parties" },
-                    ]}
+                    items={suitableListData || []}
                     selectionMode="multiple"
                     classNames={{
                       label: "font-medium text-zinc-100",

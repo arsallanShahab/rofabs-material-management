@@ -61,12 +61,16 @@ const BanquetManagement = () => {
           </FlexContainer>
         </FlexContainer>
         <FlexContainer variant="row-end">
+          <NextButton href="/banquet/manage/configs" colorScheme="secondary">
+            Configs
+          </NextButton>
           <NextButton
             href="/banquet/manage/decoration-plans"
             colorScheme="secondary"
           >
             Manage Decoration Plans
           </NextButton>
+
           <NextButton href="/banquet/manage/food-plans" colorScheme="secondary">
             Manage Food Plans
           </NextButton>

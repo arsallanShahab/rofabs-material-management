@@ -42,8 +42,9 @@ import {
   AddHouseKeepingManagement,
   HouseKeepingManagement,
 } from "./pages/material-management/house-keeping";
-import AddInventory from "./pages/material-management/inventory/AddInventory";
-import CreatePurchaseOrder from "./pages/material-management/inventory/CreatePurchaseOrder";
+// import AddInventory from "./pages/material-management/inventory/AddInventory";
+import ManageConfigs from "./pages/banquet-management/ManageConfigs";
+import InHouseInventory from "./pages/material-management/in-house/InHouseInventory";
 import CreateItems from "./pages/material-management/items/CreateItems";
 import ManageItems from "./pages/material-management/items/ManageItems";
 import {
@@ -54,6 +55,8 @@ import {
   AddLaundryManagement,
   LaundryManagement,
 } from "./pages/material-management/laundry";
+import CreatePurchaseOrder from "./pages/material-management/purchase/CreatePurchaseOrder";
+import ManagePurchaseOrder from "./pages/material-management/purchase/ManagePurchaseOrder";
 import {
   AddVendor,
   EditVendor,
@@ -104,7 +107,8 @@ const App = () => {
               <Route path="sub-categories/add" element={<AddSubCategories />} />
             </Route>
             <Route path="inventory">
-              <Route index element={<AddInventory />} />
+              <Route index element={<ManagePurchaseOrder />} />
+              <Route path="in-house" element={<InHouseInventory />} />
               <Route path="purchase-order">
                 <Route path="create" element={<CreatePurchaseOrder />} />
               </Route>
@@ -156,6 +160,7 @@ const App = () => {
             <Route index element={<BanquetManagement />} />
             <Route path="bookings" element={<ManageBookings />} />
             <Route path="manage">
+              <Route path="configs" element={<ManageConfigs />} />
               <Route path="halls" element={<ManageHalls />} />
               <Route path="food-plans">
                 <Route index element={<ManageFoodPlans />} />

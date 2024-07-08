@@ -19,6 +19,8 @@ import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import { API_TAGS } from "../../../lib/consts/API_TAGS";
+import { MAIN_CATEGORES } from "../../../lib/consts/categories";
 import useGet from "../../../lib/hooks/get-api";
 
 const UTILIZATION_TYPE = [
@@ -186,8 +188,8 @@ const KitchenManagement = () => {
       "kitchen-utilization"
     );
     getItemsData(
-      `${API_URL}/getItems?mainCategory=e45e0268-0304-46a1-a3df-96e4199975e4`,
-      "items"
+      `${API_URL}/inhouse?mainCategoryName=${MAIN_CATEGORES.KITCHEN_MANAGEMENT}`,
+      API_TAGS.GET_KITCHEN_LIST
     );
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -196,7 +198,7 @@ const KitchenManagement = () => {
     const utilization = {
       propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
       productUniqueId: values.productID,
-      quantity: values.quantity,
+      noOfProducts: values.quantity,
       utilizationDate: values.utilizationDate,
       authorisedBy: values.authorizedBy,
       utilizationType: values.utilizationType,
@@ -284,7 +286,7 @@ const KitchenManagement = () => {
                 utilizationData?.map((utilization) => (
                   <TableRow key={utilization?.uniqueId}>
                     <TableCell>{utilization?.productName}</TableCell>
-                    <TableCell>{utilization?.quantity}</TableCell>
+                    <TableCell>{utilization?.noOfProducts}</TableCell>
                     <TableCell>{utilization?.utilizationType}</TableCell>
                     <TableCell>{utilization?.utilizationDate}</TableCell>
                     <TableCell>{utilization?.authorisedBy}</TableCell>
@@ -345,7 +347,7 @@ const KitchenManagement = () => {
                         errorMessage={errors.productID}
                       >
                         {(product) => (
-                          <SelectItem key={product?.uniqueId}>
+                          <SelectItem key={product?.productId}>
                             {product?.productName}
                           </SelectItem>
                         )}

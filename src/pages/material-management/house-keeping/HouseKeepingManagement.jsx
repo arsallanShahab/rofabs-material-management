@@ -20,6 +20,8 @@ import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import { API_TAGS } from "../../../lib/consts/API_TAGS";
+import { MAIN_CATEGORES } from "../../../lib/consts/categories";
 import useGet from "../../../lib/hooks/get-api";
 
 const API_URL = import.meta.env.VITE_SERVER_URL;
@@ -61,8 +63,8 @@ const HouseKeepingManagement = () => {
       "house-keeping-utilization"
     );
     getItemsData(
-      `${API_URL}/getItems?mainCategory=6f81fc95-57fe-4a6e-9834-256c78733563`,
-      "items"
+      `${API_URL}/inhouse?mainCategoryName=${MAIN_CATEGORES.HOUSE_KEEPING_MANAGEMENT}`,
+      API_TAGS.GET_HOUSE_KEEPING_LIST
     );
   }, []);
 
@@ -73,7 +75,7 @@ const HouseKeepingManagement = () => {
         {
           propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
           productId: values.productId,
-          quantity: values.quantity,
+          noOfProducts: values.quantity,
           utilizationDate: new Date(values.utilizationDate).toISOString(),
           roomNumber: values.roomNo,
         }
@@ -190,7 +192,7 @@ const HouseKeepingManagement = () => {
                     errorMessage={errors.productId}
                   >
                     {(vendor) => (
-                      <SelectItem key={vendor?.uniqueId}>
+                      <SelectItem key={vendor?.productId}>
                         {vendor?.productName}
                       </SelectItem>
                     )}

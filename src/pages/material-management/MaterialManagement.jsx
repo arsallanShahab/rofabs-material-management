@@ -38,17 +38,20 @@ const MaterialManagement = () => {
           </FlexContainer>
         </FlexContainer>
         <FlexContainer className={"items-center"}>
-          <NextButton href={"items"} colorScheme="secondary">
+          <NextButton href={"missing"} colorScheme="secondary">
+            Missing Items
+          </NextButton>
+          <NextButton href={"inventory/in-house"} colorScheme="secondary">
             In House Inventory
           </NextButton>
           <NextButton href={"categories"} colorScheme="secondary">
-            Manage Categories
+            Category Config
           </NextButton>
           <NextButton href={"items"} colorScheme="secondary">
             Market Management
           </NextButton>
           <NextButton href={"inventory"} colorScheme="secondary">
-            Add Inventory
+            Purchases
           </NextButton>
           <NextButton colorScheme="primary" href={buttonHref}>
             {buttonText}

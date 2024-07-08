@@ -18,6 +18,7 @@ import {
   useDisclosure,
 } from "@nextui-org/react";
 import axios from "axios";
+import dayjs from "dayjs";
 import { FieldArray, Form, Formik } from "formik";
 import { Trash } from "lucide-react";
 import React, { Fragment, useEffect, useState } from "react";
@@ -28,6 +29,8 @@ import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import { API_TAGS } from "../../../lib/consts/API_TAGS";
+import { MAIN_CATEGORES } from "../../../lib/consts/categories";
 import useGet from "../../../lib/hooks/get-api";
 import { AddLaundryOutwardValidation } from "../../../lib/validation/material-management/laundry";
 
@@ -177,7 +180,7 @@ const LaundryManagement = () => {
       const items = values.items.map((item) => {
         return {
           productId: item.productId,
-          quantity: item.quantity,
+          noOfProducts: item.quantity,
           vendorId: values.vendorId,
         };
       });
@@ -205,8 +208,8 @@ const LaundryManagement = () => {
     }
     if (activeTab == 2) {
       getItemsData(
-        `${API_URL}/getItems?mainCategory=c23010dc-d0c6-436e-bc2f-197010024e11`,
-        "items"
+        `${API_URL}/inhouse?mainCategoryName=${MAIN_CATEGORES.LAUNDRY_MANAGEMENT}`,
+        API_TAGS.GET_LAUNDRY_LIST
       );
       getAllVendorsData(`${API_URL}/getVendors`, "allVendors");
     }
@@ -226,7 +229,7 @@ const LaundryManagement = () => {
         <FlexContainer variant="row-between">
           <FlexContainer variant="row-start" className="overflow-x-auto">
             <Tab
-              title="Inward"
+              title="In Transit"
               isActiveTab={activeTab === 1}
               onClick={() => handleTabClick(1)}
             />
@@ -247,10 +250,11 @@ const LaundryManagement = () => {
         </FlexContainer>
         {activeTab === 1 && (
           <FlexContainer variant="column-start">
-            <h3 className="text-lg font-semibold">Inward List</h3>
+            <h3 className="text-lg font-semibold">Transit List</h3>
             <Table aria-label="Inward List">
               <TableHeader>
                 <TableColumn>Vendor Name</TableColumn>
+                <TableColumn>No of Products</TableColumn>
                 <TableColumn>Out Date</TableColumn>
                 <TableColumn>Action</TableColumn>
               </TableHeader>
@@ -260,14 +264,17 @@ const LaundryManagement = () => {
                   utilizationData?.map((item) => (
                     <TableRow key={item?.uniqueId}>
                       <TableCell>{item?.vendorName}</TableCell>
-                      <TableCell>{item?.outDate}</TableCell>
+                      <TableCell>{item?.noOfProducts}</TableCell>
+                      <TableCell>
+                        {dayjs(item?.outDate).format("DD MMM YYYY")}
+                      </TableCell>
                       <TableCell>
                         <NextButton>Delete</NextButton>
                       </TableCell>
                     </TableRow>
                   ))}
 
-                {OUTWARD_DATA.map((item) => (
+                {/* {OUTWARD_DATA.map((item) => (
                   <TableRow key={item.id}>
                     <TableCell>{item.vendor_name}</TableCell>
                     <TableCell>{item.outDate}</TableCell>
@@ -284,7 +291,7 @@ const LaundryManagement = () => {
                       </NextButton>
                     </TableCell>
                   </TableRow>
-                ))}
+                ))} */}
               </TableBody>
             </Table>
           </FlexContainer>
@@ -350,7 +357,7 @@ const LaundryManagement = () => {
                                     }}
                                   >
                                     {(item) => (
-                                      <SelectItem key={item?.uniqueId}>
+                                      <SelectItem key={item?.productId}>
                                         {item?.productName}
                                       </SelectItem>
                                     )}

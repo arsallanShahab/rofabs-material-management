@@ -207,7 +207,7 @@ const Inventory = () => {
 
         <FlexContainer variant="row-start" className="overflow-x-auto">
           <Tab
-            title="Inventory Items"
+            title="Menu Items"
             isActiveTab={activeTab === 1}
             onClick={() => handleTabClick(1)}
           />

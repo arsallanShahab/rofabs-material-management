@@ -21,6 +21,8 @@ import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import { API_TAGS } from "../../../lib/consts/API_TAGS";
+import { MAIN_CATEGORES } from "../../../lib/consts/categories";
 import useGet from "../../../lib/hooks/get-api";
 
 const API_URL = import.meta.env.VITE_SERVER_URL;
@@ -59,8 +61,8 @@ const ElectronicManagement = () => {
     }
     if (activeTab === 2) {
       getItemsData(
-        `${API_URL}/getItems?mainCategory=4e969e6d-6e56-4fa4-bac9-d7e931f63346`,
-        "items"
+        `${API_URL}/inhouse?mainCategoryName=${MAIN_CATEGORES.ELECTRONICS_MANAGEMENT}`,
+        API_TAGS.GET_ELECTRONICS_LIST
       );
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -71,7 +73,7 @@ const ElectronicManagement = () => {
       propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
       productId: values.productId,
       roomNumber: values.roomNo,
-      quantity: values.quantity,
+      noOfProducts: values.quantity,
       dateOfInstallation: values.dateOfInstallation,
       miscellaneous: values.miscellaneous,
       damaged: values.isDamaged,
@@ -214,7 +216,7 @@ const ElectronicManagement = () => {
                     errorMessage={errors.productId}
                   >
                     {(item) => (
-                      <SelectItem key={item?.uniqueId}>
+                      <SelectItem key={item?.productId}>
                         {item?.productName}
                       </SelectItem>
                     )}

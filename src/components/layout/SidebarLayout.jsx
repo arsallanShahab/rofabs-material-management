@@ -53,6 +53,11 @@ const Links = [
     path: "/duty-roaster/manage",
     icon: <UserCog className="h-4 w-4 stroke-[2.2px]" />,
   },
+  {
+    name: "Lost & Found",
+    path: "/lost-n-found",
+    icon: <UserCog className="h-4 w-4 stroke-[2.2px]" />,
+  },
 ];
 
 const SidebarLayout = ({ showSidebar }) => {

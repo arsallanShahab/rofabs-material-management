@@ -1,4 +1,6 @@
 import {
+  Checkbox,
+  Input,
   Select,
   SelectItem,
   Table,
@@ -11,10 +13,11 @@ import {
 import axios from "axios";
 import { Form, Formik } from "formik";
 import { Minus, Plus, Trash } from "lucide-react";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import ActionArea from "../../components/layout/ActionArea";
 import FlexContainer from "../../components/layout/FlexContainer";
+import GridContainer from "../../components/layout/GridContainer";
 import NextButton from "../../components/micro/NextButton";
 import useGet from "../../lib/hooks/get-api";
 
@@ -46,9 +49,13 @@ const DUMMY_DATA = [
 const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const CreateOrder = () => {
-  const [selectedItems, setSelectedItems] = React.useState([]); //selected items
-  const [totalPrice, setTotalPrice] = React.useState(0); //total price
-  const [selectedTables, setSelectedTables] = React.useState([]); //selected tables
+  const [selectedItems, setSelectedItems] = useState([]); //selected items
+  const [totalPrice, setTotalPrice] = useState(0); //total price
+  const [selectedTables, setSelectedTables] = useState([]); //selected tables
+  const [discountForm, setDiscountForm] = useState({
+    discountType: "",
+    discountAmount: "",
+  });
   const {
     data: categoryData,
     error: categoryError,
@@ -132,6 +139,8 @@ const CreateOrder = () => {
       roomNumber: values.room_no,
       guests: values.guest,
       deliveryPartner: values.delivery_partner,
+      discountType: discountForm.discountType,
+      discountAmount: discountForm.discountAmount,
     };
     try {
       const response = await axios.post(
@@ -236,7 +245,7 @@ const CreateOrder = () => {
             <Form>
               <FlexContainer
                 variant="column-between"
-                className="w-full max-w-md h-full min-h-full"
+                className="w-full max-w-md h-full min-h-full gap-16"
               >
                 <FlexContainer variant="column-start" gap="md">
                   <Select
@@ -418,6 +427,56 @@ const CreateOrder = () => {
                   )}
                 </FlexContainer>
                 <FlexContainer variant="column-start" gap="md">
+                  <Input
+                    name="discountAmount"
+                    labelPlacement="outside"
+                    label="Discount Amount"
+                    radius="sm"
+                    classNames={{
+                      label: "font-medium text-zinc-800",
+                      inputWrapper: "border shadow-none",
+                    }}
+                    placeholder="Enter Discount Amount"
+                    value={discountForm.discountAmount}
+                    onChange={(e) => {
+                      setDiscountForm({
+                        ...discountForm,
+                        discountAmount: e.target.value,
+                      });
+                    }}
+                  />
+                  <Select
+                    label="Select Discount Type"
+                    labelPlacement="outside"
+                    name={`discountType`}
+                    placeholder="Select Discount Type"
+                    radius="sm"
+                    classNames={{
+                      label: "font-medium text-zinc-900",
+                      trigger: "border shadow-none",
+                    }}
+                    items={[
+                      { uniqueId: "percentage", name: "Percentage" },
+                      { uniqueId: "flat", name: "Flat" },
+                    ]}
+                    selectedKeys={
+                      discountForm.discountType
+                        ? [discountForm.discountType]
+                        : []
+                    }
+                    onChange={(e) => {
+                      setDiscountForm({
+                        ...discountForm,
+                        discountType: e.target.value,
+                      });
+                    }}
+                  >
+                    {(discount) => (
+                      <SelectItem key={discount?.uniqueId}>
+                        {discount?.name}
+                      </SelectItem>
+                    )}
+                  </Select>
                   <h3 className="text-lg font-semibold">Order Summary</h3>
                   <Table aria-label="Order Summary">
                     <TableHeader>
