@@ -1,6 +1,7 @@
 import { Input, Textarea } from "@nextui-org/react";
 import axios from "axios";
 import { FieldArray, Form, Formik } from "formik";
+import { Trash } from "lucide-react";
 import React from "react";
 import { toast } from "react-toastify";
 import ActionArea from "../../../components/layout/ActionArea";
@@ -15,8 +16,12 @@ const API_URL = import.meta.env.VITE_SERVER_URL;
 const CreateFoodPlans = () => {
   const initialValues = {
     planName: "",
-    planMenu: "",
-    planPrice: "",
+    dishes: [
+      {
+        name: "",
+        price: "",
+      },
+    ],
   };
 
   const { invalidateCache, refresh } = useGet({ showToast: false });
@@ -48,55 +53,87 @@ const CreateFoodPlans = () => {
           return (
             <Form>
               <FlexContainer variant="column-start">
-                <GridContainer className="lg:grid-cols-4">
-                  <Input
-                    name="planName"
-                    label="Plan Name"
-                    labelPlacement="outside"
-                    placeholder="Enter Plan Name"
-                    radius="sm"
-                    classNames={{
-                      label: "font-medium text-zinc-100",
-                      inputWrapper: "border shadow-none",
-                    }}
-                    value={values.planName}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-
-                  <Input
-                    type="number"
-                    name="planPrice"
-                    label="Plan Price (per pax)"
-                    labelPlacement="outside"
-                    placeholder="Enter Plan Price"
-                    radius="sm"
-                    classNames={{
-                      label: "font-medium text-zinc-100",
-                      inputWrapper: "border shadow-none",
-                    }}
-                    value={values.planPrice}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                </GridContainer>
-                <GridContainer className="lg:grid-cols-2">
-                  <Textarea
-                    name="planMenu"
-                    label="Plan Menu"
-                    labelPlacement="outside"
-                    placeholder="Enter Plan Description"
-                    radius="sm"
-                    classNames={{
-                      label: "font-medium text-zinc-100",
-                      inputWrapper: "border shadow-none",
-                    }}
-                    value={values.planMenu}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                  />
-                </GridContainer>
-                <FlexContainer variant="row-start" gap="sm" className={"py-5"}>
+                <Input
+                  name="planName"
+                  label="Plan Name"
+                  labelPlacement="outside"
+                  placeholder="Enter Plan Name"
+                  radius="sm"
+                  classNames={{
+                    label: "font-medium text-zinc-100",
+                    inputWrapper: "border shadow-none",
+                  }}
+                  value={values.planName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <FieldArray
+                  name="dishes"
+                  render={(arrayHelpers) => (
+                    <FlexContainer
+                      variant="column-start"
+                      className={"items-center"}
+                    >
+                      {values?.dishes?.map((dish, index) => (
+                        <GridContainer key={index}>
+                          <Input
+                            name={`dishes[${index}].name`}
+                            label="Dish Name"
+                            labelPlacement="outside"
+                            placeholder="Enter Dish Name"
+                            radius="sm"
+                            classNames={{
+                              label: "font-medium text-zinc-100",
+                              inputWrapper: "border shadow-none",
+                            }}
+                            value={dish.name}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                          />
+                          <Input
+                            name={`dishes[${index}].price`}
+                            label="Dish Price"
+                            labelPlacement="outside"
+                            placeholder="Enter Dish Price"
+                            radius="sm"
+                            classNames={{
+                              label: "font-medium text-zinc-100",
+                              inputWrapper: "border shadow-none",
+                            }}
+                            value={dish.price}
+                            onChange={handleChange}
+                            onBlur={handleBlur}
+                          />
+                          <FlexContainer className={"items-center"}>
+                            <NextButton
+                              isIcon
+                              colorScheme="flat"
+                              onClick={() => {
+                                arrayHelpers.remove(index);
+                              }}
+                            >
+                              <Trash className="w-4 h-4" />
+                            </NextButton>
+                          </FlexContainer>
+                        </GridContainer>
+                      ))}
+                      <FlexContainer variant="row-end">
+                        <NextButton
+                          colorScheme="badge"
+                          onClick={() => {
+                            arrayHelpers.push({
+                              name: "",
+                              price: "",
+                            });
+                          }}
+                        >
+                          Add Dish
+                        </NextButton>
+                      </FlexContainer>
+                    </FlexContainer>
+                  )}
+                />
+                <FlexContainer variant="row-end" gap="sm" className={"py-5"}>
                   <NextButton colorScheme="primary" type="submit">
                     Create Plan
                   </NextButton>

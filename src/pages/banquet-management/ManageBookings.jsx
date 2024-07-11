@@ -73,12 +73,12 @@ const ManageBookings = () => {
     getData: getFoodPlansData,
   } = useGet({ showToast: false });
 
-  const {
-    data: decorationPlansData,
-    error: decorationPlansError,
-    loading: decorationPlansLoading,
-    getData: getDecorationPlansData,
-  } = useGet({ showToast: false });
+  // const {
+  //   data: decorationPlansData,
+  //   error: decorationPlansError,
+  //   loading: decorationPlansLoading,
+  //   getData: getDecorationPlansData,
+  // } = useGet({ showToast: false });
 
   const {
     data: taxItemsData,
@@ -97,13 +97,13 @@ const ManageBookings = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     console.log(values);
     const fp = foodPlansData.find((item) => item.uniqueId === values.foodPlan);
-    const dp = decorationPlansData.find(
-      (item) => item?.uniqueId === values.decorationPlan
-    );
+    // const dp = decorationPlansData.find(
+    //   (item) => item?.uniqueId === values.decorationPlan
+    // );
     const sh = hallsData.find((item) => item?.uniqueId === values.hall);
     const priceQuoted =
       parseInt(fp?.planPrice) +
-      parseInt(dp?.planPrice) +
+      // parseInt(dp?.planPrice) +
       parseInt(sh?.rentPerDay) +
       parseInt(values.addOnsCost);
     const bsd = new Date(values.bookingStartDate).toISOString();
@@ -141,10 +141,10 @@ const ManageBookings = () => {
     getBookingsData(
       `${API_URL}/banquet/booking?propertyId=2a869149-342b-44c8-ad86-8f6465970638`
     );
-    getDecorationPlansData(
-      `${API_URL}/banquet/plans/decoration?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
-      API_TAGS.GET_DECORATION_PLAN
-    );
+    // getDecorationPlansData(
+    //   `${API_URL}/banquet/plans/decoration?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+    //   API_TAGS.GET_DECORATION_PLAN
+    // );
 
     getFoodPlansData(
       `${API_URL}/banquet/plans/food?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
@@ -219,26 +219,6 @@ const ManageBookings = () => {
                   <TableCell>{item?.totalCost}</TableCell>
                 </TableRow>
               ))}
-            {/* <TableRow>
-              <TableCell>ABC Hall</TableCell>
-              <TableCell>100</TableCell>
-              <TableCell>AC</TableCell>
-              <TableCell className="max-w-xs">
-                Washroom, Power Backup, Camp Fire, Chairs, Tables, Dining
-                Tables, Dias
-              </TableCell>
-              <TableCell className="max-w-xs">
-                Marriage, Birthday, Get Together, Corporate Parties
-              </TableCell>
-              <TableCell>276</TableCell>
-              <TableCell>
-                Washroom, Power Backup, Camp Fire, Chairs, Tables, Dining
-              </TableCell>
-              <TableCell>10000</TableCell>
-              <TableCell>Yes</TableCell>
-              <TableCell>10000</TableCell>
-              <TableCell>Flat</TableCell>
-            </TableRow> */}
           </TableBody>
         </Table>
       )}
@@ -293,6 +273,7 @@ const ManageBookings = () => {
                       label: "font-medium text-zinc-900",
                       trigger: "border shadow-none",
                     }}
+                    isLoading={hallsLoading}
                     items={hallsData || []}
                     selectedKeys={values.hall ? [values.hall] : []}
                     onChange={(e) => {
@@ -331,6 +312,7 @@ const ManageBookings = () => {
                       trigger: "border shadow-none",
                     }}
                     items={taxItemsData?.taxItems || []}
+                    isLoading={taxItemsLoading}
                     onChange={(e) => {
                       setFieldValue(`taxes`, e.target.value);
                     }}
@@ -353,6 +335,7 @@ const ManageBookings = () => {
                       trigger: "border shadow-none",
                     }}
                     items={foodPlansData || []}
+                    isLoading={foodPlansLoading}
                     onChange={(e) => {
                       setFieldValue(`foodPlan`, e.target.value);
                     }}
@@ -363,7 +346,7 @@ const ManageBookings = () => {
                       </SelectItem>
                     )}
                   </Select>
-                  <Select
+                  {/* <Select
                     label="Select Decoration Plan"
                     labelPlacement="outside"
                     name={`decorationPlan`}
@@ -383,7 +366,7 @@ const ManageBookings = () => {
                         {plan?.planeName}
                       </SelectItem>
                     )}
-                  </Select>
+                  </Select> */}
                 </GridContainer>
                 <h3 className="text-lg font-semibold">Discount Details</h3>
                 <GridContainer>

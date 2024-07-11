@@ -98,6 +98,7 @@ const ManageItems = () => {
           <TableColumn>S No.</TableColumn>
           <TableColumn>Product Name</TableColumn>
           <TableColumn className="rounded-r-xl">Main Category</TableColumn>
+          <TableColumn className="rounded-r-xl">Sub Category</TableColumn>
           <TableColumn className="bg-white"></TableColumn>
         </TableHeader>
         <TableBody>
@@ -108,7 +109,8 @@ const ManageItems = () => {
                 <TableRow key={item?.uniqueId}>
                   <TableCell>{i + 1}</TableCell>
                   <TableCell>{item?.productName}</TableCell>
-                  <TableCell>{item?.mainCategory}</TableCell>
+                  <TableCell>{item?.mainCategoryName}</TableCell>
+                  <TableCell>{item?.subCategoryName}</TableCell>
                   <TableCell>
                     <NextButton
                       colorScheme="flat"

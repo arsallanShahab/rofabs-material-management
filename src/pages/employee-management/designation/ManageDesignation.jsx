@@ -42,7 +42,7 @@ const ManageDesignation = () => {
 
   const handleSubmit = async (values) => {
     try {
-      const res = await axios.post(`${API_URL}/createDesignation`, {
+      const res = await axios.post(`${API_URL}/designation`, {
         name: values.designation_name,
         propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
         status: true,
@@ -57,7 +57,7 @@ const ManageDesignation = () => {
 
   useEffect(() => {
     getDesignationData(
-      `${API_URL}/getDesignations?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      `${API_URL}/designations?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
       "designationData"
     );
   }, []);

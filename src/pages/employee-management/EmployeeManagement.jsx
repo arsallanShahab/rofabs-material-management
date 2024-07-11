@@ -67,6 +67,12 @@ const EmployeeManagement = () => {
     designation: "",
     department: "",
     gender: "",
+    nokName: "",
+    nokPhone: "",
+    nokAddress: "",
+    nokRelationship: "",
+    doucmentType: "",
+    panCard: "",
   });
   const [selectImg, setSelectImg] = useState(null);
 
@@ -104,7 +110,7 @@ const EmployeeManagement = () => {
   const handleSubmit = async (values, { setSubmitting }) => {
     console.log(values);
     try {
-      const res = await axios.post(`${API_URL}/createEmployee`, {
+      const res = await axios.post(`${API_URL}/employee`, {
         propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
         name: values.name,
         phoneNumber: values.phone,
@@ -113,6 +119,10 @@ const EmployeeManagement = () => {
         dateOfJoining: values.dateOfJoining,
         department: values.department,
         gender: values.gender,
+        nokName: values.nokName,
+        nokPhone: values.nokPhone,
+        nokAddress: values.nokAddress,
+        nokRelationship: values.nokRelationship,
       });
       toast.success(res?.data?.message || "Employee created successfully");
       invalidateEmployeeData("employeeData");
@@ -124,11 +134,11 @@ const EmployeeManagement = () => {
 
   useEffect(() => {
     getDesignationData(
-      `${API_URL}/getDesignations?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      `${API_URL}/designations?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
       "designationData"
     );
     getEmployeeData(
-      `${API_URL}/getEmployees?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      `${API_URL}/employees?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
       "employeeData"
     );
   }, []);
@@ -438,7 +448,7 @@ const EmployeeManagement = () => {
                 <h3 className="text-lg font-semibold">NOK Details</h3>
                 <GridContainer>
                   <Input
-                    // name="nokName"
+                    name="nokName"
                     label="Name"
                     placeholder="Enter NOK name"
                     labelPlacement="outside"
@@ -447,10 +457,11 @@ const EmployeeManagement = () => {
                       label: "font-medium text-zinc-900",
                       inputWrapper: "border shadow-none",
                     }}
-                    // onChange={handleChange}
+                    onChange={handleChange}
                   />
                   <Input
-                    // name="nokName"
+                    type="number"
+                    name="nokPhone"
                     label="Phone Number"
                     placeholder="Enter NOK Phone Number"
                     labelPlacement="outside"
@@ -459,9 +470,22 @@ const EmployeeManagement = () => {
                       label: "font-medium text-zinc-900",
                       inputWrapper: "border shadow-none",
                     }}
-                    // onChange={handleChange}
+                    onChange={handleChange}
+                  />
+                  <Input
+                    name="nokAddress"
+                    label="Address"
+                    placeholder="Enter NOK Address"
+                    labelPlacement="outside"
+                    radius="sm"
+                    classNames={{
+                      label: "font-medium text-zinc-900",
+                      inputWrapper: "border shadow-none",
+                    }}
+                    onChange={handleChange}
                   />
                   <Select
+                    name="nokRelationship"
                     label="Realtionship"
                     placeholder="Select nok relationship"
                     labelPlacement="outside"
@@ -504,6 +528,9 @@ const EmployeeManagement = () => {
                         label: "Daughter",
                       },
                     ]}
+                    onChange={(e) => {
+                      setFieldValue("nokRelationship", e.target.value);
+                    }}
                   >
                     {(rel) => (
                       <SelectItem key={rel.key}>{rel.label}</SelectItem>
