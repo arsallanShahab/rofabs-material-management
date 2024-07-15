@@ -15,11 +15,13 @@ const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const CreateFoodPlans = () => {
   const initialValues = {
-    planName: "",
+    planeName: "",
+    planPrice: "",
+    planeDescription: "",
     dishes: [
       {
-        name: "",
-        price: "",
+        dishName: "",
+        dishPrice: "",
       },
     ],
   };
@@ -27,11 +29,14 @@ const CreateFoodPlans = () => {
   const { invalidateCache, refresh } = useGet({ showToast: false });
 
   const handleSubmit = async (values, { setSubmitting }) => {
+    // console.log(values, "val");
+    // return;
     const planData = {
       propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
-      planeName: values.planName,
-      planeDescription: values.planMenu,
+      planeName: values.planeName,
       planPrice: values.planPrice,
+      planeDescription: values.planeDescription,
+      dishes: values.dishes,
     };
     try {
       const res = await axios.post(`${API_URL}/banquet/plans/food`, planData);
@@ -54,7 +59,7 @@ const CreateFoodPlans = () => {
             <Form>
               <FlexContainer variant="column-start">
                 <Input
-                  name="planName"
+                  name="planeName"
                   label="Plan Name"
                   labelPlacement="outside"
                   placeholder="Enter Plan Name"
@@ -64,6 +69,34 @@ const CreateFoodPlans = () => {
                     inputWrapper: "border shadow-none",
                   }}
                   value={values.planName}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <Input
+                  name="planPrice"
+                  label="Plan Price"
+                  labelPlacement="outside"
+                  placeholder="Enter Plan Price"
+                  radius="sm"
+                  classNames={{
+                    label: "font-medium text-zinc-100",
+                    inputWrapper: "border shadow-none",
+                  }}
+                  value={values.planPrice}
+                  onChange={handleChange}
+                  onBlur={handleBlur}
+                />
+                <Textarea
+                  name="planeDescription"
+                  label="Plan Description"
+                  labelPlacement="outside"
+                  placeholder="Enter Plan Description"
+                  radius="sm"
+                  classNames={{
+                    label: "font-medium text-zinc-100",
+                    inputWrapper: "border shadow-none",
+                  }}
+                  value={values.planeDescription}
                   onChange={handleChange}
                   onBlur={handleBlur}
                 />
@@ -77,7 +110,7 @@ const CreateFoodPlans = () => {
                       {values?.dishes?.map((dish, index) => (
                         <GridContainer key={index}>
                           <Input
-                            name={`dishes[${index}].name`}
+                            name={`dishes[${index}].dishName`}
                             label="Dish Name"
                             labelPlacement="outside"
                             placeholder="Enter Dish Name"
@@ -91,7 +124,7 @@ const CreateFoodPlans = () => {
                             onBlur={handleBlur}
                           />
                           <Input
-                            name={`dishes[${index}].price`}
+                            name={`dishes[${index}].dishPrice`}
                             label="Dish Price"
                             labelPlacement="outside"
                             placeholder="Enter Dish Price"
@@ -122,8 +155,8 @@ const CreateFoodPlans = () => {
                           colorScheme="badge"
                           onClick={() => {
                             arrayHelpers.push({
-                              name: "",
-                              price: "",
+                              dishName: "",
+                              dishPrice: "",
                             });
                           }}
                         >

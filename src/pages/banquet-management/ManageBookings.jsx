@@ -115,7 +115,6 @@ const ManageBookings = () => {
       bookerPhoneNumber: values?.bookerPhoneNumber,
       selectedHall: values?.hall,
       selectedFoodPlan: values?.foodPlan,
-      selectedDecorationPlan: values?.decorationPlan,
       pax: values?.noOfPax,
       taxes: values?.taxes,
       addOns: values?.addOns,
@@ -192,7 +191,6 @@ const ManageBookings = () => {
             <TableColumn>Booker Name</TableColumn>
             <TableColumn>Hall</TableColumn>
             <TableColumn>Food Plan</TableColumn>
-            <TableColumn>Decoration Plan</TableColumn>
             <TableColumn>PAX</TableColumn>
             {/* <TableColumn>Taxes</TableColumn> */}
             <TableColumn>Add Ons</TableColumn>
@@ -208,9 +206,6 @@ const ManageBookings = () => {
                   <TableCell>{item?.bookerName}</TableCell>
                   <TableCell>{item?.selectedHall?.hallName}</TableCell>
                   <TableCell>{item?.selectedFoodPlan?.planeName}</TableCell>
-                  <TableCell>
-                    {item?.selectedDecorationPlan?.planeName}
-                  </TableCell>
                   <TableCell>{item?.pax}</TableCell>
                   {/* <TableCell>{item?.taxes}</TableCell> */}
                   <TableCell>{item?.addOns}</TableCell>

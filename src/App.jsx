@@ -55,6 +55,7 @@ import {
   AddLaundryManagement,
   LaundryManagement,
 } from "./pages/material-management/laundry";
+import ConfigLaundry from "./pages/material-management/laundry/ConfigLaundry";
 import CreatePurchaseOrder from "./pages/material-management/purchase/CreatePurchaseOrder";
 import ManagePurchaseOrder from "./pages/material-management/purchase/ManagePurchaseOrder";
 import {
@@ -124,6 +125,7 @@ const App = () => {
             <Route path="laundry">
               <Route index element={<LaundryManagement />} />
               <Route path="add" element={<AddLaundryManagement />} />
+              <Route path="config" element={<ConfigLaundry />} />
             </Route>
             <Route path="electronics">
               <Route index element={<ElectronicManagement />} />

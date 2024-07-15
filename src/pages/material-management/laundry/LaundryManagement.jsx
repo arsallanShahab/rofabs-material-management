@@ -222,9 +222,9 @@ const LaundryManagement = () => {
           heading={"Management"}
           subheading={"Laundry"}
           title={"Laundry Management"}
-          showButton={false}
-          buttonHref={"add"}
-          buttonText={"Create"}
+          showButton={true}
+          buttonHref={"config"}
+          buttonText={"Laundry Configurations"}
         />
         <FlexContainer variant="row-between">
           <FlexContainer variant="row-start" className="overflow-x-auto">

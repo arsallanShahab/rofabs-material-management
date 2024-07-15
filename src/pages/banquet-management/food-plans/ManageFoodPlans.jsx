@@ -49,6 +49,7 @@ const ManageFoodPlans = () => {
           <TableColumn>Plan Name</TableColumn>
           <TableColumn>Plan Menu</TableColumn>
           <TableColumn>Plan Price (per pax)</TableColumn>
+          <TableColumn>Dishes</TableColumn>
           <TableColumn></TableColumn>
         </TableHeader>
         <TableBody>
@@ -59,6 +60,9 @@ const ManageFoodPlans = () => {
                 <TableCell>{item?.planeName}</TableCell>
                 <TableCell>{item?.planeDescription}</TableCell>
                 <TableCell>{item?.planPrice}</TableCell>
+                <TableCell>
+                  {item?.dishes?.map((e) => e?.dishName)?.join(", ")}
+                </TableCell>
                 <TableCell>
                   <NextButton
                     colorScheme="flat"
