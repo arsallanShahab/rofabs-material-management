@@ -90,6 +90,7 @@ const CreatePurchaseOrder = () => {
         res?.data?.message || "Purchase order created successfully"
       );
       invalidateCache(API_TAGS.GET_PURCHASE_ORDERS);
+      invalidateCache(API_TAGS.GET_PURCHASE_HISTORY);
       //   refreshInventoryData();
     } catch (error) {
       toast.error(error?.response?.data?.error || "An error occurred");
@@ -97,7 +98,7 @@ const CreatePurchaseOrder = () => {
     // API call to add inventory
   };
   useEffect(() => {
-    getAllVendorsData(`${API_URL}/getVendors`, "allVendors");
+    getAllVendorsData(`${API_URL}/getVendors`, API_TAGS.GET_VENDORS);
     getMarketPlaceItemsData(
       `${API_URL}/getMarketItems`,
       API_TAGS.GET_MARKETPLACE_ITEMS
@@ -285,14 +286,15 @@ const CreatePurchaseOrder = () => {
                                 showScrollIndicators={true}
                                 scrollShadowProps={{ hideScrollBar: false }}
                                 items={[
-                                  { uniqueId: "1", name: "Kg" },
-                                  { uniqueId: "2", name: "Gm" },
-                                  { uniqueId: "3", name: "mg" },
-                                  { uniqueId: "4", name: "ltr" },
-                                  { uniqueId: "5", name: "ml" },
-                                  { uniqueId: "6", name: "boxes" },
-                                  { uniqueId: "7", name: "bottles" },
-                                  { uniqueId: "8", name: "can" },
+                                  { uniqueId: "1", name: "Kilogram" },
+                                  { uniqueId: "2", name: "Gram" },
+                                  { uniqueId: "3", name: "mili gram" },
+                                  { uniqueId: "4", name: "litre" },
+                                  { uniqueId: "5", name: "mili litre" },
+                                  { uniqueId: "6", name: "box" },
+                                  { uniqueId: "7", name: "bottle" },
+                                  { uniqueId: "8", name: "piece" },
+                                  { uniqueId: "9", name: "can" },
                                 ]}
                                 selectionMode="single"
                                 onChange={(e) => {
@@ -310,7 +312,7 @@ const CreatePurchaseOrder = () => {
                               </Select>
                               <Input
                                 name={`items[${index}].noOfProduct`}
-                                label="Units"
+                                label="No of Products"
                                 labelPlacement="outside"
                                 placeholder="Enter No of units"
                                 type="number"

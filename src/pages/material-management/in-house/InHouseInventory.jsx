@@ -52,7 +52,7 @@ const InHouseInventory = () => {
     error: inHouseInventoryError,
     loading: inHouseInventoryLoading,
     invalidateCache,
-    refresh,
+    refresh: refreshInHouseInventoryData,
     getData: getInHouseInventoryData,
   } = useGet({ showToast: false });
 
@@ -390,10 +390,12 @@ const InHouseInventory = () => {
                                     res?.data?.message ||
                                       "Data saved successfully"
                                   );
+                                  refreshInHouseInventoryData(
+                                    API_TAGS.GET_IN_HOUSE_INVENTORY
+                                  );
                                   invalidateCache(
                                     API_TAGS.GET_IN_HOUSE_INVENTORY
                                   );
-                                  refresh();
                                 } catch (error) {
                                   toast.error(
                                     error?.response?.data?.error ||

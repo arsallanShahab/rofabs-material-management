@@ -36,96 +36,6 @@ import { AddLaundryOutwardValidation } from "../../../lib/validation/material-ma
 
 const API_URL = import.meta.env.VITE_SERVER_URL;
 
-const ITEMS_DATA = [
-  {
-    id: 1,
-    vendor_name: "Rofabs",
-    vendor_email: "rofabs@gmail.com",
-    vendor_phone: "08012345678",
-    vendor_address: "No 1, Rofabs street, Lagos",
-    vendor_category: "Laundry",
-    vendor_items: [
-      {
-        productID: 1,
-        productName: "Vaccum Cleaner",
-        category: "Electronics",
-        quantity: 10,
-      },
-      {
-        productID: 2,
-        productName: "Soap Bar",
-        category: "Laundry",
-        quantity: 5,
-      },
-      {
-        productID: 3,
-        productName: "Detergent",
-        category: "Laundry",
-        quantity: 20,
-      },
-    ],
-  },
-  {
-    id: 2,
-    vendor_name: "Laundry Masters",
-    vendor_email: "laundry@gamilc.com",
-    vendor_phone: "08012345678",
-    vendor_address: "No 1, Laundry street, Lagos",
-    vendor_category: "Laundry",
-    vendor_items: [
-      { productID: 1, productName: "Towel", category: "Laundry", quantity: 10 },
-      {
-        productID: 2,
-        productName: "Bed Sheet",
-        category: "Laundry",
-        quantity: 5,
-      },
-      {
-        productID: 3,
-        productName: "Pillow Case",
-        category: "Laundry",
-        quantity: 20,
-      },
-    ],
-  },
-];
-
-const PRODUCT_DETAILS = [
-  {
-    id: 1,
-    product_name: "Paneer",
-    category: "Dairy Products",
-    mainCategory: "kitchen",
-  },
-  {
-    id: 2,
-    product_name: "Apple",
-    category: "Fruits",
-    mainCategory: "kitchen",
-  },
-];
-
-const OUTWARD_DATA = [
-  {
-    id: 1,
-    vendor_name: "Rofabs",
-    outDate: "2021-09-01",
-    items: [
-      { productName: "Vaccum Cleaner", category: "Electronics", quantity: 5 },
-      { productName: "Soap Bar", category: "Laundry", quantity: 2 },
-    ],
-  },
-  {
-    id: 2,
-    vendor_name: "Laundry Masters",
-    outDate: "2021-09-01",
-    items: [
-      { productName: "Towel", category: "Laundry", quantity: 5 },
-      { productName: "Bed Sheet", category: "Laundry", quantity: 2 },
-    ],
-  },
-];
-
 const LaundryManagement = () => {
   const [activeTab, setActiveTab] = useState(1);
   const handleTabClick = (tab) => {
@@ -138,10 +48,12 @@ const LaundryManagement = () => {
 
   const [initialValues, setInitialValues] = useState({
     vendorId: "",
+    vendorName: "",
     outDate: "",
     items: [
       {
         productId: "",
+        productName: "",
         quantity: "",
       },
     ],
@@ -176,12 +88,16 @@ const LaundryManagement = () => {
 
   const handleSubmitOutward = async (values, { setSubmitting }) => {
     setSubmitting(true);
+    // console.log("values", values);
+    // return;
     try {
       const items = values.items.map((item) => {
         return {
           productId: item.productId,
-          noOfProducts: item.quantity,
+          outNoOfProducts: item.quantity,
           vendorId: values.vendorId,
+          productName: item.productName,
+          vendorName: values.vendorName,
         };
       });
       const data = {
@@ -190,8 +106,9 @@ const LaundryManagement = () => {
         outDate: new Date(values.outDate).toISOString(),
       };
 
-      const res = await axios.post(`${API_URL}/createLaundryOutward`, data);
+      const res = await axios.post(`${API_URL}/laundry/out`, data);
       toast.success(res?.data?.message || "Outward created successfully");
+      refreshUtilizationData(API_TAGS.GET_LAUNDRY_OUTSOURCING_LIST);
     } catch (error) {
       toast.error(error?.response?.data?.error || "An error occurred");
     } finally {
@@ -200,18 +117,16 @@ const LaundryManagement = () => {
   };
 
   useEffect(() => {
-    if (activeTab == 1) {
-      getUtilizationData(
-        `${API_URL}/getLaundryOutwards?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
-        "laundryOutwards"
-      );
-    }
+    getUtilizationData(
+      `${API_URL}/laundry?propertyId=2a869149-342b-44c8-ad86-8f6465970638&status=Out`,
+      API_TAGS.GET_LAUNDRY_OUTSOURCING_LIST
+    );
     if (activeTab == 2) {
       getItemsData(
         `${API_URL}/inhouse?mainCategoryName=${MAIN_CATEGORES.LAUNDRY_MANAGEMENT}`,
         API_TAGS.GET_LAUNDRY_LIST
       );
-      getAllVendorsData(`${API_URL}/getVendors`, "allVendors");
+      getAllVendorsData(`${API_URL}/getVendors`, API_TAGS.GET_VENDORS);
     }
   }, [activeTab]);
 
@@ -250,10 +165,11 @@ const LaundryManagement = () => {
         </FlexContainer>
         {activeTab === 1 && (
           <FlexContainer variant="column-start">
-            <h3 className="text-lg font-semibold">Transit List</h3>
             <Table aria-label="Inward List">
               <TableHeader>
+                <TableColumn>S No.</TableColumn>
                 <TableColumn>Vendor Name</TableColumn>
+                <TableColumn>Product Name</TableColumn>
                 <TableColumn>No of Products</TableColumn>
                 <TableColumn>Out Date</TableColumn>
                 <TableColumn>Action</TableColumn>
@@ -261,15 +177,25 @@ const LaundryManagement = () => {
               <TableBody>
                 {!utilizationLoading &&
                   utilizationData?.length &&
-                  utilizationData?.map((item) => (
+                  utilizationData?.map((item, index) => (
                     <TableRow key={item?.uniqueId}>
+                      <TableCell>{index + 1}</TableCell>
                       <TableCell>{item?.vendorName}</TableCell>
-                      <TableCell>{item?.noOfProducts}</TableCell>
+                      <TableCell>{item?.productName}</TableCell>
+                      <TableCell>{item?.outNoOfProducts}</TableCell>
                       <TableCell>
                         {dayjs(item?.outDate).format("DD MMM YYYY")}
                       </TableCell>
                       <TableCell>
-                        <NextButton>Delete</NextButton>
+                        <NextButton
+                          onClick={() => {
+                            setSelectedInward(item);
+                            onOpen();
+                            // setActiveTab(2)
+                          }}
+                        >
+                          Inward items
+                        </NextButton>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -294,6 +220,11 @@ const LaundryManagement = () => {
                 ))} */}
               </TableBody>
             </Table>
+            {!utilizationLoading && !utilizationData?.length && (
+              <FlexContainer variant="column-center" className="h-20">
+                <h3 className="text-lg font-semibold">No data found</h3>
+              </FlexContainer>
+            )}
           </FlexContainer>
         )}
         {activeTab === 2 && (
@@ -353,6 +284,14 @@ const LaundryManagement = () => {
                                       setFieldValue(
                                         `items.${index}.productId`,
                                         e.target.value
+                                      );
+                                      const product = itemsData.find(
+                                        (item) =>
+                                          item.productId === e.target.value
+                                      );
+                                      setFieldValue(
+                                        `items.${index}.productName`,
+                                        product?.productName
                                       );
                                     }}
                                   >
@@ -438,6 +377,10 @@ const LaundryManagement = () => {
                         items={allVendorsData || []}
                         onChange={(e) => {
                           setFieldValue("vendorId", e.target.value);
+                          const vendor = allVendorsData.find(
+                            (item) => item.uniqueId === e.target.value
+                          );
+                          setFieldValue("vendorName", vendor?.vendorName);
                         }}
                         // selectedKeys={[values.vendorName]}
                         isInvalid={errors.vendorId && touched.vendorId}
@@ -530,229 +473,190 @@ const LaundryManagement = () => {
             <>
               <ModalHeader className="flex flex-col gap-1">
                 <h2 className="text-lg font-semibold">
-                  Inward Details for {selectedInward?.vendor_name}
+                  Inward Details for {selectedInward?.vendorName}
                 </h2>
               </ModalHeader>
               <ModalBody>
-                <FlexContainer variant="column-start">
-                  {selectedInward?.items.map((item, index) => (
-                    <Formik
-                      key={index}
-                      initialValues={{
-                        productName: item.productName,
-                        category: item.category,
-                        quantity: item.quantity,
-                        isReceived: false,
-                        recievedQuantity: 0,
-                        isDamaged: false,
-                        description: "",
-                      }}
-                      onSubmit={(values, { setSubmitting }) => {
-                        console.log("values", values);
-                      }}
-                    >
-                      {({
-                        values,
-                        errors,
-                        touched,
-                        // handleSubmit,
-                        handleChange,
-                        handleBlur,
-                        setFieldValue,
-                      }) => (
-                        <Form>
-                          <FlexContainer variant="column-start" gap="md">
-                            <h3 className="text-lg font-semibold text-zinc-900">
-                              Item {index + 1}
-                            </h3>
+                <Formik
+                  initialValues={{
+                    uniqueId: selectedInward?.uniqueId,
+                    propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
+                    productId: selectedInward?.productId,
+                    productName: selectedInward?.productName,
+                    isDamaged: false,
+                    inDate: "",
+                    damagedItems: {
+                      damageDescription: "",
+                      damageNoOfProducts: 0,
+                      laundryDamageItemStatus: "",
+                      missingNoOfProducts: 0,
+                      receivedNoOfProducts: 0,
+                    },
+                  }}
+                  enableReinitialize
+                  onSubmit={async (values, { setSubmitting }) => {
+                    console.log(values);
+                    try {
+                      const res = await axios.post(`${API_URL}/laundry/in`, {
+                        ...values,
+                      });
+                      toast.success(
+                        res?.data?.message ||
+                          "Item added to inventory successfully"
+                      );
+                      refreshUtilizationData(
+                        API_TAGS.GET_LAUNDRY_OUTSOURCING_LIST
+                      );
+                      onClose();
+                    } catch (error) {
+                      console.log(error);
+                      toast.error(
+                        error?.response?.data?.error || "An error occurred"
+                      );
+                    }
+                  }}
+                >
+                  {({
+                    values,
+                    errors,
+                    touched,
+                    // handleSubmit,
+                    handleChange,
+                    handleBlur,
+                    setFieldValue,
+                  }) => (
+                    <Form>
+                      <FlexContainer variant="column-start" gap="md">
+                        <h3 className="text-lg font-semibold text-zinc-900">
+                          Item Details
+                        </h3>
+                        <GridContainer gap="lg">
+                          <Input
+                            name="productName"
+                            label="Product Name"
+                            labelPlacement="outside"
+                            radius="sm"
+                            classNames={{
+                              label: "font-medium text-zinc-900",
+                              inputWrapper: "border shadow-none",
+                            }}
+                            value={values.productName}
+                            isReadOnly
+                          />
+                          <Input
+                            name="productId"
+                            label="Product ID"
+                            labelPlacement="outside"
+                            radius="sm"
+                            classNames={{
+                              label: "font-medium text-zinc-800",
+                              inputWrapper: "border shadow-none",
+                            }}
+                            value={values.productId}
+                            isReadOnly
+                          />
+                          <Input
+                            name="inDate"
+                            label="In Date"
+                            labelPlacement="outside"
+                            type="date"
+                            radius="sm"
+                            classNames={{
+                              label: "font-medium text-zinc-800",
+                              inputWrapper: "border shadow-none",
+                            }}
+                            value={values.inDate}
+                            onChange={(date) => {
+                              setFieldValue("inDate", date.target.value);
+                            }}
+                            onBlur={handleBlur}
+                          />
+                          <Checkbox
+                            name="isDamaged"
+                            label="Damaged"
+                            value={values.isDamaged}
+                            onValueChange={(value) => {
+                              setFieldValue("isDamaged", value);
+                            }}
+                            onBlur={handleBlur}
+                          >
+                            Damaged
+                          </Checkbox>
+                          {values.isDamaged && (
                             <GridContainer gap="lg">
                               <Input
-                                name="productName"
-                                label="Product Name"
-                                labelPlacement="outside"
-                                radius="sm"
-                                classNames={{
-                                  label: "font-medium text-zinc-900",
-                                  inputWrapper: "border shadow-none",
-                                }}
-                                value={item.productName}
-                                isReadOnly
-                              />
-                              <Input
-                                name="category"
-                                label="Category"
+                                type="number"
+                                name="damagedItems.damageNoOfProducts"
+                                label="No of Damaged Products"
                                 labelPlacement="outside"
                                 radius="sm"
                                 classNames={{
                                   label: "font-medium text-zinc-800",
                                   inputWrapper: "border shadow-none",
                                 }}
-                                value={item.category}
-                                isReadOnly
+                                value={values.damagedItems.damageNoOfProducts}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
                               />
                               <Input
                                 type="number"
-                                min="1"
-                                name="quantity"
-                                label="Quantity"
+                                name="damagedItems.missingNoOfProducts"
+                                label="No of Missing Products"
                                 labelPlacement="outside"
                                 radius="sm"
                                 classNames={{
                                   label: "font-medium text-zinc-800",
                                   inputWrapper: "border shadow-none",
                                 }}
-                                value={item.quantity}
-                              />
-                              <Checkbox
-                                name="isReceived"
-                                label="Received"
-                                value={values.isReceived}
-                                onValueChange={(value) => {
-                                  setFieldValue("isReceived", value);
-                                  if (value) {
-                                    setFieldValue(
-                                      "recievedQuantity",
-                                      item.quantity
-                                    );
-                                  }
-                                }}
-                                onBlur={handleBlur}
-                                isInvalid={
-                                  errors.isReceived && touched.isReceived
-                                }
-                                color={
-                                  errors.isReceived && touched.isReceived
-                                    ? "danger"
-                                    : ""
-                                }
-                                error={errors.isReceived && touched.isReceived}
-                                errorMessage={errors.isReceived}
-                              >
-                                Received
-                              </Checkbox>
-                              {values.isReceived && (
-                                <Input
-                                  type="number"
-                                  min="1"
-                                  name="recievedQuantity"
-                                  label="Received Quantity"
-                                  labelPlacement="outside"
-                                  radius="sm"
-                                  classNames={{
-                                    label: "font-medium text-zinc-800",
-                                    inputWrapper: "border shadow-none",
-                                  }}
-                                  value={values.recievedQuantity}
-                                  onChange={handleChange}
-                                  onBlur={handleBlur}
-                                  isInvalid={
-                                    errors.recievedQuantity &&
-                                    touched.recievedQuantity
-                                  }
-                                  color={
-                                    errors.recievedQuantity &&
-                                    touched.recievedQuantity
-                                      ? "danger"
-                                      : ""
-                                  }
-                                  error={
-                                    errors.recievedQuantity &&
-                                    touched.recievedQuantity
-                                  }
-                                  errorMessage={errors.recievedQuantity}
-                                />
-                              )}
-                              <Checkbox
-                                name="damages"
-                                label="Damages"
-                                value={values.damages}
+                                value={values.damagedItems.missingNoOfProducts}
                                 onChange={handleChange}
                                 onBlur={handleBlur}
-                                isInvalid={errors.damages && touched.damages}
-                                color={
-                                  errors.damages && touched.damages
-                                    ? "danger"
-                                    : ""
-                                }
-                                error={errors.damages && touched.damages}
-                                errorMessage={errors.damages}
-                              >
-                                Damages
-                              </Checkbox>
-                              {values.damages && (
-                                <Input
-                                  name="description"
-                                  labelPlacement="outside"
-                                  label="Description"
-                                  radius="sm"
-                                  classNames={{
-                                    label: "font-medium text-zinc-800",
-                                    inputWrapper: "border shadow-none",
-                                  }}
-                                  placeholder="Enter description"
-                                  value={values.description}
-                                  onChange={handleChange}
-                                  onBlur={handleBlur}
-                                  isInvalid={
-                                    errors.description && touched.description
-                                  }
-                                  color={
-                                    errors.description && touched.description
-                                      ? "danger"
-                                      : ""
-                                  }
-                                  error={
-                                    errors.description && touched.description
-                                  }
-                                  errorMessage={errors.description}
-                                />
-                              )}
-                            </GridContainer>
-                            <FlexContainer variant="row-end">
-                              <NextButton
-                                type="submit"
-                                onClick={() => {
-                                  //update the items array in formik state
-                                  const updatedItems = selectedInward.items.map(
-                                    (item, i) => {
-                                      if (i === index) {
-                                        return {
-                                          ...item,
-                                          isDamaged: values.damages,
-                                          description: values.description,
-                                        };
-                                      }
-                                      return item;
-                                    }
-                                  );
-                                  setSelectedInward({
-                                    ...selectedInward,
-                                    items: updatedItems,
-                                  });
-                                  console.log("selectedInward", selectedInward);
+                              />
+                              <Input
+                                type="number"
+                                name="damagedItems.receivedNoOfProducts"
+                                label="No of Received Products"
+                                labelPlacement="outside"
+                                radius="sm"
+                                classNames={{
+                                  label: "font-medium text-zinc-800",
+                                  inputWrapper: "border shadow-none",
                                 }}
-                                colorScheme="badge"
-                              >
-                                Update Item
-                              </NextButton>
-                            </FlexContainer>
-                          </FlexContainer>
-                        </Form>
-                      )}
-                    </Formik>
-                  ))}
-                  {/* <div className="flex flex-col gap-2">
-                    <h3 className="text-lg font-semibold">Items</h3>
-                    <Table>
-                      <TableBody></TableBody>
-                    </Table>
-                  </div> */}
-                </FlexContainer>
+                                value={values.damagedItems.receivedNoOfProducts}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                              />
+                              <Input
+                                name="damagedItems.damageDescription"
+                                labelPlacement="outside"
+                                label="Description"
+                                radius="sm"
+                                classNames={{
+                                  label: "font-medium text-zinc-800",
+                                  inputWrapper: "border shadow-none",
+                                }}
+                                placeholder="Enter description"
+                                value={values.damagedItems.damageDescription}
+                                onChange={handleChange}
+                                onBlur={handleBlur}
+                              />
+                            </GridContainer>
+                          )}
+                        </GridContainer>
+                        <FlexContainer variant="row-end">
+                          <NextButton type="submit" colorScheme="primary">
+                            Update Item
+                          </NextButton>
+                        </FlexContainer>
+                      </FlexContainer>
+                    </Form>
+                  )}
+                </Formik>
               </ModalBody>
-              <ModalFooter>
+              {/* <ModalFooter>
                 <NextButton onClick={onClose}>Close</NextButton>
                 <NextButton colorScheme="primary">Save</NextButton>
-              </ModalFooter>
+              </ModalFooter> */}
             </>
           )}
         </ModalContent>

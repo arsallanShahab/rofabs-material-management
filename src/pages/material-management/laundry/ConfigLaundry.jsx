@@ -15,9 +15,11 @@ import {
   TableRow,
   useDisclosure,
 } from "@nextui-org/react";
+import axios from "axios";
 import { FieldArray, Form, Formik } from "formik";
 import { Trash } from "lucide-react";
 import React, { useEffect, useState } from "react";
+import { toast } from "react-toastify";
 import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
 import GridContainer from "../../../components/layout/GridContainer";
@@ -49,6 +51,14 @@ const ConfigLaundry = () => {
   };
 
   const {
+    data: pricelistData,
+    error: pricelistError,
+    loading: pricelistLoading,
+    getData: getPricelistData,
+    refresh: refreshPricelistData,
+  } = useGet({ showToast: false });
+
+  const {
     data: itemsData,
     error: itemsError,
     loading: itemsLoading,
@@ -66,7 +76,34 @@ const ConfigLaundry = () => {
     getData: getAllVendorsData,
   } = useGet({ showToast: false });
 
+  const handleSubmit = async (values, { setSubmitting }) => {
+    console.log(values);
+    const data = values.items.map((item) => {
+      return {
+        vendorUniqueId: values.vendorId,
+        productUniqueId: item.productId,
+        price: item.price,
+      };
+    });
+    console.log(data);
+    try {
+      const res = await axios.post(`${API_URL}/laundary/price`, {
+        items: data,
+      });
+      toast.success("Price configured successfully");
+      refreshPricelistData(API_TAGS.GET_LAUNDRY_PRICE_LIST);
+    } catch (error) {
+      console.log(error);
+      toast.error("Something went wrong");
+    }
+  };
+
   useEffect(() => {
+    getPricelistData(
+      `${API_URL}/laundary/price`,
+      API_TAGS.GET_LAUNDRY_PRICE_LIST
+    );
+
     getItemsData(
       `${API_URL}/inhouse?mainCategoryName=${MAIN_CATEGORES.LAUNDRY_MANAGEMENT}`,
       API_TAGS.GET_LAUNDRY_LIST
@@ -96,27 +133,43 @@ const ConfigLaundry = () => {
         <Table aria-label="Price List">
           <TableHeader>
             <TableColumn>Vendor Name</TableColumn>
-            <TableColumn>Products</TableColumn>
-            <TableColumn>Action</TableColumn>
+            <TableColumn>Product Name</TableColumn>
+            <TableColumn>Price</TableColumn>
+            <TableColumn></TableColumn>
           </TableHeader>
           <TableBody>
-            <TableRow>
-              <TableCell>Vendor 1</TableCell>
-              <TableCell>Product 1,Product 2</TableCell>
-              <TableCell>
-                <NextButton colorScheme="badge" onClick={onOpen}>
-                  View
-                </NextButton>
-              </TableCell>
-            </TableRow>
+            {!pricelistLoading &&
+              pricelistData?.map((price) => (
+                <TableRow key={price?.uniqueId}>
+                  <TableCell>{price?.vendorName}</TableCell>
+                  <TableCell>{price?.productName}</TableCell>
+                  <TableCell>{price?.price}</TableCell>
+                  <TableCell>
+                    <NextButton
+                      colorScheme="error"
+                      size="small"
+                      onClick={async () => {
+                        try {
+                          const res = await axios.delete(
+                            `${API_URL}/laundary/price?uniqueId=${price?.uniqueId}`
+                          );
+                          toast.success("Price deleted successfully");
+                          refreshPricelistData();
+                        } catch (error) {
+                          toast.error("Something went wrong");
+                        }
+                      }}
+                    >
+                      Delete
+                    </NextButton>
+                  </TableCell>
+                </TableRow>
+              ))}
           </TableBody>
         </Table>
       )}
       {activeTab === 2 && (
-        <Formik
-          initialValues={initialValues}
-          onSubmit={(values) => console.log(values)}
-        >
+        <Formik initialValues={initialValues} onSubmit={handleSubmit}>
           {({ values, handleChange, handleSubmit, setFieldValue }) => {
             return (
               <Form>
@@ -176,7 +229,7 @@ const ConfigLaundry = () => {
                                 )}
                               </Select>
                               <Input
-                                type="text"
+                                type="number"
                                 name={`items.${index}.price`}
                                 label="Price"
                                 labelPlacement="outside"

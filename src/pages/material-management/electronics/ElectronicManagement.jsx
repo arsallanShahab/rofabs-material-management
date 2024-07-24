@@ -56,7 +56,7 @@ const ElectronicManagement = () => {
     if (activeTab === 1) {
       getUtilizationData(
         `${API_URL}/getElectronicsUtilizations?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
-        "electronics-utilization"
+        API_TAGS.GET_ELECTRONIC_UTILIZATION_LIST
       );
     }
     if (activeTab === 2) {
@@ -86,8 +86,8 @@ const ElectronicManagement = () => {
         utilization
       );
       toast.success("Utilization created successfully");
-      invalidateUtilizationCache();
-      refreshUtilizationData();
+      // invalidateUtilizationCache();
+      refreshUtilizationData(API_TAGS.GET_ELECTRONIC_UTILIZATION_LIST);
     } catch (error) {
       toast.error(error?.response?.data?.error || "An error occurred");
     } finally {
@@ -133,9 +133,9 @@ const ElectronicManagement = () => {
         >
           <TableHeader>
             <TableColumn>Product Name</TableColumn>
-            <TableColumn>Quantity</TableColumn>
-            <TableColumn>Damage Discription</TableColumn>
-            <TableColumn>Damage Amount </TableColumn>
+            <TableColumn>No of Products</TableColumn>
+            <TableColumn>Room Number</TableColumn>
+            <TableColumn>Damage</TableColumn>
             <TableColumn>Date of Installation</TableColumn>
           </TableHeader>
           <TableBody>
@@ -143,11 +143,15 @@ const ElectronicManagement = () => {
               utilizationData?.map((utilization) => (
                 <TableRow key={utilization?.uniqueId}>
                   <TableCell>{utilization?.productName}</TableCell>
-                  <TableCell>{utilization?.quantity}</TableCell>
+                  <TableCell>{utilization?.noOfProducts}</TableCell>
+                  <TableCell>{utilization?.roomNumber}</TableCell>
                   <TableCell>
-                    {utilization?.damageDescription || "N/P"}
+                    {utilization?.damaged
+                      ? utilization?.damageAmount +
+                        ", " +
+                        utilization?.damageDescription
+                      : "No"}
                   </TableCell>
-                  <TableCell>{utilization?.damageAmount || "N/P"}</TableCell>
                   <TableCell>
                     {dayjs(utilization?.dateOfInstallation).format(
                       "DD-MM-YYYY"

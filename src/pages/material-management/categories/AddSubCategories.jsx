@@ -32,6 +32,7 @@ const AddSubCategories = () => {
       });
       const { data } = await res.data;
       invalidateCache(API_TAGS.GET_SUB_CATEGORY);
+      refresh(API_TAGS.GET_SUB_CATEGORY);
       invalidateCache(API_TAGS.GET_MAIN_CATEGORY_SUB_CATEGORY);
       console.log(data);
       toast.success("Sub Category added successfully");

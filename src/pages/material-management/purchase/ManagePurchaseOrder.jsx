@@ -93,13 +93,14 @@ const ManagePurchaseOrder = () => {
     error: purchaseOrderError,
     loading: purchaseOrderLoading,
     invalidateCache,
-    refresh,
+    refresh: refreshPurchaseOrderData,
     getData: getPurchaseOrderData,
   } = useGet({ showToast: false });
   const {
     data: purchaseHistoryData,
     error: purchaseHistoryError,
     loading: purchaseHistoryLoading,
+    refresh: refreshPurchaseHistoryData,
     getData: getPurchaseHistoryData,
   } = useGet({ showToast: false });
 
@@ -398,7 +399,7 @@ const ManagePurchaseOrder = () => {
                               items={[
                                 { uniqueId: 1, status: "Ordered" },
                                 { uniqueId: 2, status: "InHouse" },
-                                { uniqueId: 3, status: "Damaged" },
+                                // { uniqueId: 3, status: "Damaged" },
                               ]}
                               selectedKeys={[values.status]}
                               onChange={(value) => {
@@ -563,10 +564,17 @@ const ManagePurchaseOrder = () => {
                                     `${API_URL}/purchase?uniqueId=${selectedPurchaseOrder.uniqueId}`,
                                     values
                                   );
+                                  refreshPurchaseOrderData(
+                                    API_TAGS.GET_PURCHASE_ORDERS
+                                  );
+                                  refreshPurchaseHistoryData(
+                                    API_TAGS.GET_PURCHASE_HISTORY
+                                  );
                                   toast.success(
                                     res?.data?.message || "Order updated"
                                   );
                                 } catch (error) {
+                                  console.log("error", error);
                                   toast.error(
                                     error?.response?.data?.error ||
                                       "An error occurred"

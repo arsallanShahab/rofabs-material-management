@@ -12,23 +12,6 @@ import {
   AddLaundryOutwardValidation,
 } from "../../../lib/validation/material-management/laundry";
 
-//   Inward
-// item name [ item name will be dropwon ]
-// quantity
-// in date
-// vendor [ it will a dropdown which will contain all the vendors of laundry category ]
-//   outward
-// item name [ item name will be dropwon ]
-// quantity
-// out date
-// vendor [ it will a dropdown which will contain all the vendors of laundry category ]
-// damages ? true : false
-// 	- description in popup
-//    cost management
-// item name
-// per piece cost
-// delivery timeline
-
 const AddLaundryManagement = () => {
   const [activeTab, setActiveTab] = useState(1);
   const [tabsError, setTabsError] = useState({

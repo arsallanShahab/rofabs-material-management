@@ -137,7 +137,6 @@ const MaterialCategories = () => {
             onChange={(e) => {
               setSelectedMainCategory(e.target.value);
               if (e?.target?.value?.length > 0) {
-                refreshSubCategories();
                 e.target.hidePopover();
               }
             }}

@@ -44,6 +44,7 @@ import {
 } from "./pages/material-management/house-keeping";
 // import AddInventory from "./pages/material-management/inventory/AddInventory";
 import ManageConfigs from "./pages/banquet-management/ManageConfigs";
+import DutyRoasterConfig from "./pages/duty-roaster-management/DutyRoasterConfig";
 import InHouseInventory from "./pages/material-management/in-house/InHouseInventory";
 import CreateItems from "./pages/material-management/items/CreateItems";
 import ManageItems from "./pages/material-management/items/ManageItems";
@@ -177,6 +178,7 @@ const App = () => {
           <Route path="duty-roaster">
             <Route path="manage" element={<DutyRoasterManagement />} />
             <Route path="create" element={<CreateDutyRoaster />} />
+            <Route path="config" element={<DutyRoasterConfig />} />
           </Route>
         </Route>
         <Route path="/login" exact element={<Login />} />

@@ -21,6 +21,7 @@ import ActionArea from "../../../components/layout/ActionArea";
 import FlexContainer from "../../../components/layout/FlexContainer";
 import NextButton from "../../../components/micro/NextButton";
 import Tab from "../../../components/micro/Tab";
+import { API_TAGS } from "../../../lib/consts/API_TAGS";
 import useGet from "../../../lib/hooks/get-api";
 
 const API_URL = import.meta.env.VITE_SERVER_URL;
@@ -36,7 +37,7 @@ const VendorsManagement = () => {
   } = useGet({ showToast: false });
 
   useEffect(() => {
-    getAllVendorsData(`${API_URL}/getVendors`, "allVendors");
+    getAllVendorsData(`${API_URL}/getVendors`, API_TAGS.GET_VENDORS);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -76,7 +77,7 @@ const VendorList = ({ data, isLoading }) => {
           data?.map((item, i) => {
             return (
               <TableRow
-                href={`/vendors/details/${item?.uniqueId}`}
+                // href={`/vendors/details/${item?.uniqueId}`}
                 key={item?.uniqueId}
                 className="cursor-pointer"
               >
@@ -88,7 +89,9 @@ const VendorList = ({ data, isLoading }) => {
                   {item?.vendorCategories?.map((c) => c?.name)?.join(", ")}
                 </TableCell>
                 <TableCell>
-                  {item?.selfVending ? "Self Vending" : "Third Party Vending"}
+                  {item?.selfVending === "true"
+                    ? "Self Vending"
+                    : "Third Party Vending"}
                 </TableCell>
                 <TableCell>
                   {item?.vendorStatus ? (

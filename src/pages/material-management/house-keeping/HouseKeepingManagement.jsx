@@ -55,12 +55,12 @@ const HouseKeepingManagement = () => {
     invalidateCache: invalidateUtilizationCache,
     refresh: refreshUtilizationData,
     getData: getUtilizationData,
-  } = useGet({ showToast: false });
+  } = useGet({ showToast: true });
 
   useEffect(() => {
     getUtilizationData(
       `${API_URL}/getHouseKeepingUtilizationEntries?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
-      "house-keeping-utilization"
+      API_TAGS.GET_HOUSE_KEEPING_UTILIZATION_LIST
     );
     getItemsData(
       `${API_URL}/inhouse?mainCategoryName=${MAIN_CATEGORES.HOUSE_KEEPING_MANAGEMENT}`,
@@ -82,8 +82,7 @@ const HouseKeepingManagement = () => {
       );
       const { data } = response;
       toast.success(data.message || "Utilization Created Successfully");
-      invalidateUtilizationCache();
-      refreshUtilizationData();
+      refreshUtilizationData(API_TAGS.GET_HOUSE_KEEPING_UTILIZATION_LIST);
     } catch (error) {
       console.log("Utilization Creation Failed");
       toast.error(

@@ -19,6 +19,10 @@ export const API_TAGS = Object.freeze({
   GET_BOOKINGS: "getBookings",
   GET_KITCHEN_LIST: "getKitchenList",
   GET_LAUNDRY_LIST: "getLaundryList",
+  GET_LAUNDRY_PRICE_LIST: "getLaundryPriceList",
   GET_HOUSE_KEEPING_LIST: "getHouseKeepingList",
+  GET_HOUSE_KEEPING_UTILIZATION_LIST: "getHouseKeepingUtilizationList",
   GET_ELECTRONICS_LIST: "getElectronicsList",
+  GET_ELECTRONIC_UTILIZATION_LIST: "getElectronicUtilizationList",
+  GET_LAUNDRY_OUTSOURCING_LIST: "getLaundryOutsourcingList",
 });
