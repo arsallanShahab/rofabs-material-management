@@ -38,7 +38,7 @@ const ElectronicManagement = () => {
     data: itemsData,
     error: itemsError,
     loading: itemsLoading,
-    invalidateCache: invalidateItemsCache,
+    invalidateCache,
     refresh: refreshItemsData,
     getData: getItemsData,
   } = useGet({ showToast: false });
@@ -50,6 +50,13 @@ const ElectronicManagement = () => {
     invalidateCache: invalidateUtilizationCache,
     refresh: refreshUtilizationData,
     getData: getUtilizationData,
+  } = useGet({ showToast: false });
+  const {
+    data: graphData,
+    error: graphError,
+    loading: graphLoading,
+    refresh,
+    getData: getGraphData,
   } = useGet({ showToast: false });
 
   useEffect(() => {
@@ -118,7 +125,11 @@ const ElectronicManagement = () => {
             onClick={() => handleTabClick(2)}
           />
         </FlexContainer>
-        <NextButton colorScheme="flat" className="text-blue-500 underline">
+        <NextButton
+          href="consumption-report"
+          colorScheme="flat"
+          className="text-blue-500 underline"
+        >
           View Consumption Report
         </NextButton>
       </FlexContainer>

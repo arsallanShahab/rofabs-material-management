@@ -210,7 +210,7 @@ const CreatePurchaseOrder = () => {
                                 // variant="bordered"
                                 name={`items[${index}].productID`}
                                 defaultItems={marketPlaceItemsData || []}
-                                placeholder="Search an animal"
+                                placeholder="Search items"
                                 // className="max-w-xs"
                                 // selectedKey={value}
                                 // onSelectionChange={setValue}

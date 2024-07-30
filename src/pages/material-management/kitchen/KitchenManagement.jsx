@@ -184,8 +184,8 @@ const KitchenManagement = () => {
 
   useEffect(() => {
     getUtilizationData(
-      `${API_URL}/getKitchenUtilizationEntry`,
-      "kitchen-utilization"
+      `${API_URL}/getKitchenUtilizationEntry?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      API_TAGS.GET_KITCHEN_UTILIZATION_LIST
     );
     getItemsData(
       `${API_URL}/inhouse?mainCategoryName=${MAIN_CATEGORES.KITCHEN_MANAGEMENT}`,
@@ -245,13 +245,16 @@ const KitchenManagement = () => {
             onClick={() => handleTabClick(2)}
           />
         </FlexContainer>
-        <NextButton colorScheme="flat" className="text-blue-500 underline">
+        <NextButton
+          colorScheme="flat"
+          href="consumption-report"
+          className="text-blue-500 underline"
+        >
           View Consumption Report
         </NextButton>
       </FlexContainer>
       {activeTab === 1 && (
         <FlexContainer variant="column-start">
-          <h3 className="text-lg font-semibold">Inward List</h3>
           <Table aria-label="Inward List">
             <TableHeader
               columns={[

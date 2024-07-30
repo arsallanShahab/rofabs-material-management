@@ -44,7 +44,11 @@ import {
 } from "./pages/material-management/house-keeping";
 // import AddInventory from "./pages/material-management/inventory/AddInventory";
 import ManageConfigs from "./pages/banquet-management/ManageConfigs";
+import DamagedItemsManagement from "./pages/damages/DamagedItemsManagement";
 import DutyRoasterConfig from "./pages/duty-roaster-management/DutyRoasterConfig";
+import HotelConfig from "./pages/hotel-config/HotelConfig";
+import ConsumptionReportElectronics from "./pages/material-management/electronics/ConsumptionReport";
+import ConsumptionReportHouseKeeping from "./pages/material-management/house-keeping/ConsumptionReport";
 import InHouseInventory from "./pages/material-management/in-house/InHouseInventory";
 import CreateItems from "./pages/material-management/items/CreateItems";
 import ManageItems from "./pages/material-management/items/ManageItems";
@@ -52,6 +56,9 @@ import {
   AddKitchenManagement,
   KitchenManagement,
 } from "./pages/material-management/kitchen";
+import ConsumptionReportKitchen from "./pages/material-management/kitchen/ConsumptionReport";
+import CreateKitsAndComplementary from "./pages/material-management/kits-&-complementary/CreateKitsAndComplementary";
+import KitsAndComplementaryManagement from "./pages/material-management/kits-&-complementary/KitsAndComplementaryManagement";
 import {
   AddLaundryManagement,
   LaundryManagement,
@@ -78,6 +85,7 @@ const App = () => {
     <NextUIProvider navigate={navigate}>
       <Routes>
         <Route path="/" element={<Layout />}>
+          <Route path="hotel-config" element={<HotelConfig />} />
           <Route path="profile" element={<Profile />} />
           <Route path="change-password" element={<ChangePassword />} />
           <Route path="dashboard" element={<Dashboard />} />
@@ -118,10 +126,18 @@ const App = () => {
             <Route path="house-keeping">
               <Route index element={<HouseKeepingManagement />} />
               <Route path="add" element={<AddHouseKeepingManagement />} />
+              <Route
+                path="consumption-report"
+                element={<ConsumptionReportHouseKeeping />}
+              />
             </Route>
             <Route path="kitchen">
               <Route index element={<KitchenManagement />} />
               <Route path="add" element={<AddKitchenManagement />} />
+              <Route
+                path="consumption-report"
+                element={<ConsumptionReportKitchen />}
+              />
             </Route>
             <Route path="laundry">
               <Route index element={<LaundryManagement />} />
@@ -131,9 +147,17 @@ const App = () => {
             <Route path="electronics">
               <Route index element={<ElectronicManagement />} />
               <Route path="add" element={<AddElectronicsManagement />} />
+              <Route
+                path="consumption-report"
+                element={<ConsumptionReportElectronics />}
+              />
             </Route>
-            <Route path="miscellaneous" element={<MiscellaneousManagement />} />
+            <Route path="kits-&-complementary">
+              <Route index element={<KitsAndComplementaryManagement />} />
+              <Route path="create" element={<CreateKitsAndComplementary />} />
+            </Route>
           </Route>
+          <Route path="damages" element={<DamagedItemsManagement />} />
           <Route path="vendors">
             <Route index element={<VendorsManagement />} />
             <Route path="add">

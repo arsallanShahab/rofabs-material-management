@@ -29,6 +29,11 @@ const Links = [
     icon: <Package className="h-4 w-4 stroke-[2.2px]" />,
   },
   {
+    name: "Damaged Items",
+    path: "/damages",
+    icon: <Package className="h-4 w-4 stroke-[2.2px]" />,
+  },
+  {
     name: "Kitchen Service Request",
     path: "/ksr/inventory",
     icon: <Package className="h-4 w-4 stroke-[2.2px]" />,

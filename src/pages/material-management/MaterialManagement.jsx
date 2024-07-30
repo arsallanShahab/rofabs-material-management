@@ -58,7 +58,7 @@ const MaterialManagement = () => {
           </NextButton>
         </FlexContainer>
       </FlexContainer>
-      <GridContainer className="lg:grid-cols-5 *:flex-1">
+      <GridContainer className="lg:grid-cols-4 *:flex-1">
         <Link to={"kitchen"}>
           <FlexContainer
             variant="column-center"
@@ -99,14 +99,16 @@ const MaterialManagement = () => {
             <p className="text-sm font-semibold">Manage Electronics Items</p>
           </FlexContainer>
         </Link>
-        <Link to={"miscellaneous"}>
+        <Link to={"kits-&-complementary"}>
           <FlexContainer
             variant="column-center"
             gap="none"
-            className={"bg-zinc-100 rounded-xl p-3 border"}
+            className={"bg-zinc-100 rounded-xl p-3 border text-center"}
           >
-            <h3 className="text-lg font-semibold">Miscellaneous</h3>
-            <p className="text-sm font-semibold">Miscellaneous Items</p>
+            <h3 className="text-lg font-semibold">kits and Complementary</h3>
+            <p className="text-sm font-semibold">
+              kits and Complementary Items
+            </p>
           </FlexContainer>
         </Link>
         {/* <Link to={"vendors"}>

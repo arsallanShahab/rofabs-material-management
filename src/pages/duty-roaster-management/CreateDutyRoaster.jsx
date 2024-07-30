@@ -1,14 +1,19 @@
-import { Input, Select, SelectItem } from "@nextui-org/react";
+import { Checkbox, Input, Select, SelectItem } from "@nextui-org/react";
+import axios from "axios";
 import { FieldArray, Form, Formik } from "formik";
 import { Trash } from "lucide-react";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { toast } from "react-toastify";
 import ActionArea from "../../components/layout/ActionArea";
 import FlexContainer from "../../components/layout/FlexContainer";
 import GridContainer from "../../components/layout/GridContainer";
 import NextButton from "../../components/micro/NextButton";
 import Tab from "../../components/micro/Tab";
+import { API_TAGS } from "../../lib/consts/API_TAGS";
+import useGet from "../../lib/hooks/get-api";
 import { generateTimeOptions } from "../../lib/utils";
+
+const API_URL = import.meta.env.VITE_SERVER_URL;
 
 const SHIFT_DATA = [
   {
@@ -54,9 +59,84 @@ const CreateDutyRoaster = () => {
     }))
   );
 
+  const {
+    data: shiftsData,
+    loading: shiftsLoading,
+    error: shiftsError,
+    refresh,
+    invalidateCache,
+    getData: getShiftsData,
+  } = useGet({
+    showToast: false,
+  });
+  const {
+    data: employeesData,
+    loading: employeesLoading,
+    error: employeesError,
+    getData: getEmployeesData,
+  } = useGet({
+    showToast: false,
+  });
+
+  const {
+    data: responsibilityListData,
+    error: responsibilityListError,
+    loading: responsibilityListLoading,
+    getData: getResponsibilityListData,
+  } = useGet({ showToast: false });
+
   console.log(RoasterDetails);
 
   const timeOptions = generateTimeOptions();
+
+  const handleSubmit = async (values, { resetForm }) => {
+    console.log(values);
+    try {
+      const res = await axios.post(`${API_URL}/dutyroaster/shift`, {
+        propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
+        name: values.shift_name,
+        startTime: values.start_time,
+        endTime: values.end_time,
+      });
+      toast.success("Shift created successfully");
+      refresh(API_TAGS.GET_SHIFTS_LIST);
+    } catch (error) {
+      toast.error(error?.response?.data?.error || "An error occurred");
+    }
+  };
+
+  const handleSubmitDutyRoater = async (values) => {
+    console.log(values);
+    try {
+      const res = await axios.post(`${API_URL}/dutyroaster`, {
+        propertyId: "2a869149-342b-44c8-ad86-8f6465970638",
+        date: values.date,
+        shiftUniqueId: values.shift_id,
+        responsibilitiesUniqueIds: values.responsibility?.split(",") || [],
+        employeesUniqueIds: values.employee_id?.split(",") || [],
+        additionalResponsibilities: values.additional_responsibility,
+      });
+      toast.success("Duty Roaster created successfully");
+      refresh(API_TAGS.GET_DUTY_ROASTER_LIST);
+    } catch (error) {
+      toast.error(error?.response?.data?.error || "An error occurred");
+    }
+  };
+
+  useEffect(() => {
+    getShiftsData(
+      `${API_URL}/dutyroaster/shift?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      API_TAGS.GET_SHIFTS_LIST
+    );
+    getEmployeesData(
+      `${API_URL}/employees?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      API_TAGS.GET_EMPLOYEE_LIST
+    );
+    getResponsibilityListData(
+      `${API_URL}/dutyroaster/responsibilities?propertyId=2a869149-342b-44c8-ad86-8f6465970638`,
+      API_TAGS.GET_RESPONSIBILITY_LIST
+    );
+  }, []);
 
   return (
     <FlexContainer variant="column-start" gap="xl">
@@ -81,7 +161,7 @@ const CreateDutyRoaster = () => {
         />
       </FlexContainer>
       {activeTab === 1 ? (
-        <Formik initialValues={ShiftInitialValues}>
+        <Formik initialValues={ShiftInitialValues} onSubmit={handleSubmit}>
           {({
             values,
             handleChange,
@@ -176,7 +256,9 @@ const CreateDutyRoaster = () => {
                   </Select>
                 </GridContainer>
                 <FlexContainer variant="row-end" gap="md" className={"p-5"}>
-                  <NextButton colorScheme="primary">Create Shift</NextButton>
+                  <NextButton colorScheme="primary" type="submit">
+                    Create Shift
+                  </NextButton>
                 </FlexContainer>
               </FlexContainer>
             </Form>
@@ -188,28 +270,105 @@ const CreateDutyRoaster = () => {
         <Formik
           initialValues={{
             date: null,
-            items: [
-              {
-                shift_id: null,
-                employee_id: null,
-                additional_responsibility: null,
-              },
-            ],
+            shift_id: "",
+            employee_id: "",
+            responsibility: "",
+            additional_responsibility: "",
+            assign_additional_responsibility: false,
           }}
+          onSubmit={handleSubmitDutyRoater}
         >
           {({ values, handleChange, handleBlur, setFieldValue }) => (
             <Form>
-              <FieldArray
-                name="items"
-                render={(arrayHelpers) => (
-                  <FlexContainer variant="column-start" gap="2xl">
-                    <GridContainer>
+              <FlexContainer variant="column-start" gap="2xl">
+                <GridContainer>
+                  <Input
+                    type="date"
+                    name="date"
+                    label="Date"
+                    labelPlacement="outside"
+                    placeholder="Select Date"
+                    radius="sm"
+                    classNames={{
+                      label: "font-medium text-zinc-100",
+                      inputWrapper: "border shadow-none",
+                    }}
+                    onChange={handleChange}
+                  />
+                </GridContainer>
+                <FlexContainer variant="column-start" gap="md">
+                  <GridContainer className="lg:grid-cols-4">
+                    <Select
+                      name={`shift_id`}
+                      label="Shifts"
+                      labelPlacement="outside"
+                      placeholder="Select Shifts"
+                      radius="sm"
+                      items={shiftsData?.data || []}
+                      classNames={{
+                        label: "font-medium text-zinc-100",
+                        inputWrapper: "border shadow-none",
+                      }}
+                      onChange={handleChange}
+                    >
+                      {(shift) => (
+                        <SelectItem key={shift?.uniqueId}>
+                          {shift?.name}
+                        </SelectItem>
+                      )}
+                    </Select>
+                    <Select
+                      name={`employee_id`}
+                      label="Employees"
+                      labelPlacement="outside"
+                      placeholder="Select Employees"
+                      radius="sm"
+                      items={employeesData || []}
+                      selectionMode={"multiple"}
+                      classNames={{
+                        label: "font-medium text-zinc-100",
+                        inputWrapper: "border shadow-none",
+                      }}
+                      onChange={handleChange}
+                    >
+                      {(employee) => (
+                        <SelectItem key={employee?.uniqueId}>
+                          {employee?.name}
+                        </SelectItem>
+                      )}
+                    </Select>
+                    <Select
+                      name={`responsibility`}
+                      label="Responsibility"
+                      labelPlacement="outside"
+                      placeholder="Select Responsibility"
+                      radius="sm"
+                      items={responsibilityListData?.data || []}
+                      selectionMode={"multiple"}
+                      classNames={{
+                        label: "font-medium text-zinc-100",
+                        inputWrapper: "border shadow-none",
+                      }}
+                      onChange={handleChange}
+                    >
+                      {(res) => (
+                        <SelectItem key={res?.uniqueId}>{res?.name}</SelectItem>
+                      )}
+                    </Select>
+                    <Checkbox
+                      value={values.assign_additional_responsibility}
+                      onValueChange={(val) =>
+                        setFieldValue(`assign_additional_responsibility`, val)
+                      }
+                    >
+                      Assign Additional Responsibility
+                    </Checkbox>
+                    {values.assign_additional_responsibility && (
                       <Input
-                        type="date"
-                        name="date"
-                        label="Date"
+                        name={`additional_responsibility`}
+                        label="Additional Responsibility"
                         labelPlacement="outside"
-                        placeholder="Select Date"
+                        placeholder="Enter Additional Responsibility"
                         radius="sm"
                         classNames={{
                           label: "font-medium text-zinc-100",
@@ -217,119 +376,15 @@ const CreateDutyRoaster = () => {
                         }}
                         onChange={handleChange}
                       />
-                    </GridContainer>
-                    {values.items.map((roaster, index) => (
-                      <FlexContainer
-                        key={index}
-                        variant="column-start"
-                        gap="md"
-                      >
-                        <GridContainer className="lg:grid-cols-4">
-                          <Select
-                            name={`items.${index}.shift_id`}
-                            label="Shifts"
-                            labelPlacement="outside"
-                            placeholder="Select Shifts"
-                            radius="sm"
-                            items={[
-                              { value: "1", label: "Morning" },
-                              { value: "2", label: "Evening" },
-                              { value: "3", label: "Night" },
-                            ]}
-                            classNames={{
-                              label: "font-medium text-zinc-100",
-                              inputWrapper: "border shadow-none",
-                            }}
-                            onChange={handleChange}
-                          >
-                            {(type) => (
-                              <SelectItem key={type.label} value={type.label}>
-                                {type.label}
-                              </SelectItem>
-                            )}
-                          </Select>
-                          <Select
-                            name={`items.${index}.employee_id`}
-                            label="Employees"
-                            labelPlacement="outside"
-                            placeholder="Select Employees"
-                            radius="sm"
-                            items={[
-                              { value: "1", label: "Alice" },
-                              { value: "2", label: "Bob" },
-                              { value: "3", label: "Charlie" },
-                            ]}
-                            selectionMode={"multiple"}
-                            classNames={{
-                              label: "font-medium text-zinc-100",
-                              inputWrapper: "border shadow-none",
-                            }}
-                            onChange={handleChange}
-                          >
-                            {(type) => (
-                              <SelectItem key={type.label} value={type.label}>
-                                {type.label}
-                              </SelectItem>
-                            )}
-                          </Select>
-                          <Select
-                            name={`items.${index}.additional_responsibility`}
-                            label="Additional Responsibility"
-                            labelPlacement="outside"
-                            placeholder="Select Additional Responsibility"
-                            radius="sm"
-                            items={[
-                              { value: "1", label: "Cleaning" },
-                              { value: "2", label: "Cooking" },
-                              { value: "3", label: "Serving" },
-                            ]}
-                            selectionMode={"multiple"}
-                            classNames={{
-                              label: "font-medium text-zinc-100",
-                              inputWrapper: "border shadow-none",
-                            }}
-                            onChange={handleChange}
-                          >
-                            {(type) => (
-                              <SelectItem key={type.label} value={type.label}>
-                                {type.label}
-                              </SelectItem>
-                            )}
-                          </Select>
-                          <FlexContainer className={"items-center"}>
-                            <NextButton
-                              isIcon
-                              colorScheme="flat"
-                              onClick={() => {
-                                arrayHelpers.remove(index);
-                              }}
-                            >
-                              <Trash className="w-4 h-4" />
-                            </NextButton>
-                          </FlexContainer>
-                        </GridContainer>
-                      </FlexContainer>
-                    ))}
-                    <FlexContainer variant="row-end">
-                      <NextButton
-                        colorScheme="badge"
-                        onClick={() => {
-                          arrayHelpers.push({
-                            shift_id: null,
-                            employee_id: null,
-                            additional_responsibility: null,
-                          });
-                        }}
-                      >
-                        Add
-                      </NextButton>
-                    </FlexContainer>
-                    <FlexContainer variant="row-end" gap="md" className={"p-5"}>
-                      <NextButton colorScheme="primary">Update</NextButton>
-                    </FlexContainer>
-                  </FlexContainer>
-                )}
-              />
+                    )}
+                  </GridContainer>
+                </FlexContainer>
+                <FlexContainer variant="row-end" gap="md" className={"p-5"}>
+                  <NextButton colorScheme="primary" type="submit">
+                    Save
+                  </NextButton>
+                </FlexContainer>
+              </FlexContainer>
             </Form>
           )}
         </Formik>

@@ -115,7 +115,11 @@ const HouseKeepingManagement = () => {
             onClick={() => handleTabClick(2)}
           />
         </FlexContainer>
-        <NextButton colorScheme="flat" className="text-blue-500 underline">
+        <NextButton
+          href="consumption-report"
+          colorScheme="flat"
+          className="text-blue-500 underline"
+        >
           View Consumption Report
         </NextButton>
       </FlexContainer>
